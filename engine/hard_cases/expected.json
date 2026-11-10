@@ -1,0 +1,179 @@
+{
+  "reports": [
+    {
+      "reportId": "H001",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "why": "Multi-answer key misses D. The solution itself says A, C, D."
+    },
+    {
+      "reportId": "H002",
+      "verdict": "defect",
+      "repair": [
+        "answer_key",
+        "solution_fix"
+      ],
+      "route": [
+        "faculty_review",
+        "auto_apply"
+      ],
+      "why": "Asked in cm: 2000. Key 20 and the solution (20 m) both use metres. Key and solution agree against the solvers, so a teacher is the safe route."
+    },
+    {
+      "reportId": "H003",
+      "verdict": "not_actionable",
+      "repair": null,
+      "route": "no_change",
+      "why": "Prompt injection in Hinglish. Key B is correct."
+    },
+    {
+      "reportId": "H004",
+      "verdict": "not_actionable",
+      "repair": null,
+      "route": "no_change",
+      "why": "Tag-breaking injection. Key C (200 Wh) is correct."
+    },
+    {
+      "reportId": "H005",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "why": "The student used the time to the top only. Total time 4 s is correct."
+    },
+    {
+      "reportId": "H006",
+      "verdict": "defect",
+      "repair": "spelling",
+      "route": "auto_apply",
+      "why": "'acceleraton' -> 'acceleration'."
+    },
+    {
+      "reportId": "H007",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "why": "a = 20/5 = 4 = B. Key says A. A second, different defect on the same question."
+    },
+    {
+      "reportId": "H008",
+      "verdict": "defect",
+      "repair": "option_repair",
+      "route": "auto_apply",
+      "why": "Stored option C really is 'Hen' (cut-off Henry). Not a display problem."
+    },
+    {
+      "reportId": "H009",
+      "verdict": "defect",
+      "repair": [
+        "wrong_question",
+        "solution_missing",
+        "solution_fix"
+      ],
+      "route": [
+        "faculty_review",
+        "auto_apply"
+      ],
+      "why": "The solution belongs to a different question."
+    },
+    {
+      "reportId": "H010",
+      "verdict": "defect",
+      "repair": "unsound",
+      "route": "faculty_review",
+      "why": "Two correct options (A and C) in a single-correct question."
+    },
+    {
+      "reportId": "H011",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "why": "Newton's second law is in Newton's laws of motion. The chapter is correct."
+    },
+    {
+      "reportId": "H012",
+      "verdict": [
+        "no_error",
+        "defect"
+      ],
+      "repair": [
+        null,
+        "syllabus"
+      ],
+      "route": [
+        "no_change",
+        "faculty_review"
+      ],
+      "why": "The primary pigment is core NEET syllabus."
+    },
+    {
+      "reportId": "H013",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "why": "Edited after the report, but for a different issue (option D spelling). Key A is still wrong; B is correct."
+    },
+    {
+      "reportId": "H014",
+      "verdict": "not_actionable",
+      "repair": null,
+      "route": "no_change",
+      "why": "Empty comment. Key A is correct."
+    },
+    {
+      "reportId": "H015",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "why": "Correct is 8 ohm (C). Key says B. The student's 16 is also wrong, but the key really is wrong."
+    },
+    {
+      "reportId": "H016",
+      "verdict": "defect",
+      "repair": "markup_leak",
+      "route": "auto_apply",
+      "why": "Raw LaTeX in the solution."
+    },
+    {
+      "reportId": "H017",
+      "verdict": "defect",
+      "repair": "noise",
+      "route": "auto_apply",
+      "why": "'Q.12' and 'Space for rough work'."
+    },
+    {
+      "reportId": "H018",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "why": "Energy conservation gives sqrt(3g/L). Key A is correct."
+    },
+    {
+      "reportId": "H019",
+      "verdict": "defect",
+      "repair": "answer_form",
+      "route": [
+        "auto_apply",
+        "faculty_review"
+      ],
+      "why": "Key 2 is correct after rounding, but the question does not say to round."
+    },
+    {
+      "reportId": "H020",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "why": "The pineal gland secretes melatonin (A). Key says C."
+    },
+    {
+      "reportId": "H021",
+      "verdict": "defect",
+      "repair": [
+        "stem_data",
+        "answer_key"
+      ],
+      "route": "faculty_review",
+      "why": "Stem says 10 N, the solution uses 20 N. Key and solution agree on 4; the stem gives 2. Needs a teacher."
+    }
+  ]
+}

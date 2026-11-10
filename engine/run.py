@@ -1,12 +1,15 @@
+import argparse
 import json
+import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
+from pathlib import Path
 
 from ai import OPUS, SONNET, TAXONOMY, CallUsage, JudgeResult, ReportJudgment, SolverResult, judge_question, load_env_file, solve_question
 from checks import Finding, run_all_checks
 from guards import Decision, decide_routes_for_question
-from parse import PROJECT_DIR, Question, load_questions_with_reports
+from parse import DATA_DIR, PROJECT_DIR, Question, load_questions_with_reports
 from vote import Vote, build_vote, solvers_need_tiebreak
 
 PARALLEL_QUESTIONS = 6
@@ -142,13 +145,19 @@ def summarize_cost(usages: list[CallUsage]) -> dict:
     }
 
 
-def write_json(name: str, data: object) -> None:
-    (PROJECT_DIR / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+def write_json(path: Path, data: object) -> None:
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Triage student error reports into safe fixes.")
+    parser.add_argument("--data-dir", type=Path, default=DATA_DIR, help="folder with questions.json and reports.json")
+    parser.add_argument("--out-dir", type=Path, default=PROJECT_DIR, help="folder for results.json, cases.json and cost.json")
+    args = parser.parse_args()
+
     load_env_file()
-    questions = load_questions_with_reports()
+    started = time.perf_counter()
+    questions = load_questions_with_reports(args.data_dir)
     with ThreadPoolExecutor(PARALLEL_QUESTIONS) as pool:
         processed = list(pool.map(process_question, questions.values()))
 
@@ -158,16 +167,17 @@ def main() -> None:
     check_results_before_saving(results, questions)
 
     cost = summarize_cost(usages)
-    write_json("results.json", results)
-    write_json("cases.json", cases)
-    write_json("cost.json", cost)
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    write_json(args.out_dir / "results.json", results)
+    write_json(args.out_dir / "cases.json", cases)
+    write_json(args.out_dir / "cost.json", cost)
 
     routes = defaultdict(int)
     for entry in results:
         routes[entry["route"]] += 1
     print(f"Wrote {len(results)} results and {len(cases)} cases. Routes: {dict(routes)}")
     print(f"Cost of a full run: ${cost['full_run_cost_usd']}. This run: ${cost['this_run_cost_usd']} "
-          f"({cost['calls_served_from_cache']} of {cost['total_calls']} calls from cache).")
+          f"({cost['calls_served_from_cache']} of {cost['total_calls']} calls from cache). Took {time.perf_counter() - started:.1f}s.")
 
 
 if __name__ == "__main__":

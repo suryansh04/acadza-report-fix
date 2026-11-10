@@ -5,11 +5,10 @@ from typing import Any
 
 from parse import OPTION_LETTERS, Question
 
-MIN_SOLUTION_LENGTH = 25
 LATEX_COMMAND = re.compile(r"\\[A-Za-z]+(\{|\b)")
 VISIBLE_HTML_TAG = re.compile(r"</?[a-z][a-z0-9]*(\s[^<>]*)?>", re.IGNORECASE)
 EXAM_TAG = re.compile(r"\(?\s*\b(JEE(\s+(Main|Advanced))?|NEET|AIEEE|AIIMS|BITSAT)\b[^()\n]{0,20}?\b(19|20)\d{2}\s*\)?", re.IGNORECASE)
-NOISE_TEXT = re.compile(r"space\s+for\s+rough\s+work|^\s*Q\.?\s*\d+[.):]", re.IGNORECASE | re.MULTILINE)
+NOISE_TEXT = re.compile(r"space\s+for\s+rough\s+work|^\s*Q(uestion)?\s*\.?\s*(no\.?\s*)?\d+\s*[.):-]?(?=\s)", re.IGNORECASE | re.MULTILINE)
 FIGURE_REFERENCE = re.compile(r"\b(shown\s+in\s+(the\s+)?(figure|fig|diagram)|as\s+shown|given\s+figure|figure\s+shows)\b", re.IGNORECASE)
 
 
@@ -110,16 +109,21 @@ def check_options(question: Question) -> list[Finding]:
     return findings
 
 
+def question_text_with_options(question: Question) -> str:
+    # The parser puts trailing text such as "Space for rough work" into the last option, so checks read both.
+    return question.stem_text + "\n" + "\n".join(question.options.values())
+
+
 def check_solution_present(question: Question) -> list[Finding]:
-    if len(question.solution_text) < MIN_SOLUTION_LENGTH:
-        return [Finding("solution_missing", f"Solution is empty or too short ({len(question.solution_text)} characters).", "solution_missing")]
+    # Only an empty solution is certain. Whether a short solution is usable is a judgement call for the judge.
+    if not re.search(r"\w", question.solution_text):
+        return [Finding("solution_missing", "Solution is empty.", "solution_missing")]
     return []
 
 
 def check_markup_leak(question: Question) -> list[Finding]:
     findings = []
-    for field_name, text in (("question", question.stem_text + "\n" + "\n".join(question.options.values())),
-                             ("solution", question.solution_text)):
+    for field_name, text in (("question", question_text_with_options(question)), ("solution", question.solution_text)):
         leak = LATEX_COMMAND.search(text) or VISIBLE_HTML_TAG.search(text)
         if leak:
             findings.append(Finding("markup_leak", f"Raw markup {leak.group(0)!r} shows as text in the {field_name}.", "markup_leak"))
@@ -127,16 +131,16 @@ def check_markup_leak(question: Question) -> list[Finding]:
 
 
 def check_exam_reference(question: Question) -> list[Finding]:
-    match = EXAM_TAG.search(question.stem_text)
+    match = EXAM_TAG.search(question_text_with_options(question))
     if match:
         return [Finding("exam_reference", f"Exam tag {match.group(0).strip()!r} inside the question.", "exam_reference")]
     return []
 
 
 def check_noise_text(question: Question) -> list[Finding]:
-    match = NOISE_TEXT.search(question.stem_text)
-    if match:
-        return [Finding("noise", f"Stray text {match.group(0).strip()!r} in the question.", "noise")]
+    matches = [match.group(0).strip() for match in NOISE_TEXT.finditer(question_text_with_options(question))]
+    if matches:
+        return [Finding("noise", f"Stray text {', '.join(repr(text) for text in matches)} in the question.", "noise")]
     return []
 
 

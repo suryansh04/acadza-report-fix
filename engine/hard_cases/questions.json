@@ -1,0 +1,412 @@
+[
+  {
+    "_id": "aa0000000000000000000001",
+    "qid": null,
+    "questionType": "mcq",
+    "subject": "Physics",
+    "chapter": "Units and dimensions",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "mcq": {
+      "question": "<h3>Which of the following are scalar quantities?<br />(A) Work<br />(B) Momentum<br />(C) Electric current<br />(D) Pressure</h3>",
+      "solution": "<p>Work, electric current and pressure have no direction, so they are scalars. Momentum is a vector. Correct options: A, C and D.</p>",
+      "answer": [
+        "A",
+        "C"
+      ],
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000002",
+    "qid": null,
+    "questionType": "integerQuestion",
+    "subject": "Physics",
+    "chapter": "Motion in a straight line",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "integerQuestion": {
+      "question": "<h3>A body falls freely from rest for 2 s (g = 10 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math>). Find the distance covered (in cm).</h3>",
+      "solution": "<p>s = (1/2) g t<sup>2</sup> = (1/2) &times; 10 &times; 4 = 20 m</p>",
+      "answer": "20",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000003",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Current electricity",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A potential difference of 12 V drives a current of 3 A through a resistor. Its resistance is<br />(A) 36 &Omega;<br />(B) 4 &Omega;<br />(C) 0.25 &Omega;<br />(D) 15 &Omega;</h3>",
+      "solution": "<p>R = V / I = 12 / 3 = 4 &Omega;</p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000004",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Current electricity",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>The energy used by a 100 W bulb in 2 hours is<br />(A) 50 Wh<br />(B) 100 Wh<br />(C) 200 Wh<br />(D) 400 Wh</h3>",
+      "solution": "<p>Energy = P &times; t = 100 W &times; 2 h = 200 Wh</p>",
+      "answer": "C",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000005",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Motion in a straight line",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A ball is thrown vertically upward with a speed of 20 m/s (g = 10 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math>). After how long does it return to the thrower's hand?<br />(A) 2 s<br />(B) 4 s<br />(C) 1 s<br />(D) 8 s</h3>",
+      "solution": "<p>Time to reach the top = u/g = 2 s. Time to come back = 2 s. Total time = 4 s.</p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000006",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Motion in a straight line",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A car accelerates uniformly from rest to 20 m/s in 5 s. Its acceleraton is<br />(A) 2 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(B) 4 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(C) 5 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(D) 100 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></h3>",
+      "solution": "<p>a = v / t = 20 / 5 = 4 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></p>",
+      "answer": "A",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000007",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Magnetism and matter",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>The SI unit of magnetic flux is<br />(A) Tesla<br />(B) Weber<br />(C) Hen<br />(D) Gauss</h3>",
+      "solution": "<p>Magnetic flux is measured in weber (Wb). 1 Wb = 1 T m<sup>2</sup>.</p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000008",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Ray optics",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A ray of light passes from air into glass of refractive index 1.5. The speed of light in glass is<br />(A) 3 &times; 10<sup>8</sup> m/s<br />(B) 2 &times; 10<sup>8</sup> m/s<br />(C) 4.5 &times; 10<sup>8</sup> m/s<br />(D) 1.5 &times; 10<sup>8</sup> m/s</h3>",
+      "solution": "<p>Kinetic energy K = (1/2) m v<sup>2</sup> = (1/2) &times; 2 &times; 9 = 9 J. So the kinetic energy of the block is 9 J.</p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000009",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Units and dimensions",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>Which of the following is a vector quantity?<br />(A) Velocity<br />(B) Speed<br />(C) Displacement<br />(D) Mass</h3>",
+      "solution": "<p>Velocity has both magnitude and direction, so it is a vector.</p>",
+      "answer": "A",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000010",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Newton's law of motion",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A net force of 10 N acts on a body of mass 2 kg. Its acceleration is<br />(A) 20 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(B) 5 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(C) 0.2 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(D) 12 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></h3>",
+      "solution": "<p>By Newton's second law, a = F / m = 10 / 2 = 5 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000011",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Botany",
+    "chapter": "Photosynthesis in Higher Plants",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>Which pigment is the primary photosynthetic pigment?<br />(A) Carotene<br />(B) Xanthophyll<br />(C) Chlorophyll a<br />(D) Chlorophyll b</h3>",
+      "solution": "<p>Chlorophyll a is the primary pigment. It forms the reaction centre of both photosystems. The others are accessory pigments.</p>",
+      "answer": "C",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000012",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Work, power and energy",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2026-11-08T09:00:00Z",
+    "scq": {
+      "question": "<h3>1 kWh is equal to<br />(A) 3.6 &times; 10<sup>5</sup> J<br />(B) 3.6 &times; 10<sup>6</sup> J<br />(C) 3.6 &times; 10<sup>3</sup> J<br />(D) 36 Joule</h3>",
+      "solution": "<p>1 kWh = 1000 W &times; 3600 s = 3.6 &times; 10<sup>6</sup> J</p>",
+      "answer": "A",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": [
+      {
+        "type": "Spelling mistake",
+        "actor": "faculty",
+        "at": "2026-11-08T09:00:00Z",
+        "note": "'Jouel' -> 'Joule' in option D"
+      }
+    ]
+  },
+  {
+    "_id": "aa0000000000000000000013",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Units and dimensions",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>The dimensional formula of force is<br />(A) [MLT<sup>-2</sup>]<br />(B) [ML<sup>2</sup>T<sup>-2</sup>]<br />(C) [MLT<sup>-1</sup>]<br />(D) [ML<sup>-1</sup>T<sup>-2</sup>]</h3>",
+      "solution": "<p>F = m a, so [F] = [M][LT<sup>-2</sup>] = [MLT<sup>-2</sup>]</p>",
+      "answer": "A",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000014",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Current electricity",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A wire has a resistance of 2 &Omega;. Its length is doubled and its area of cross-section is halved, keeping the material the same. The new resistance is<br />(A) 2 &Omega;<br />(B) 4 &Omega;<br />(C) 8 &Omega;<br />(D) 1 &Omega;</h3>",
+      "solution": "<p>R = &rho; L / A. New R = &rho; (2L) / (A/2) = 4R = 8 &Omega;</p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000015",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Work, power and energy",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A 2 kg body moves with a speed of 3 m/s. Its kinetic energy is<br />(A) 3 J<br />(B) 6 J<br />(C) 9 J<br />(D) 18 J</h3>",
+      "solution": "<p>K = $\\frac{1}{2}mv^2$ = 0.5 &times; 2 &times; 9 = 9 J</p>",
+      "answer": "C",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000016",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Gravitation",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>Q.12 The value of g at the surface of the earth is about<br />(A) 9.8 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(B) 1.6 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(C) 98 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(D) 0.98 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />Space for rough work</h3>",
+      "solution": "<p>g = GM/R<sup>2</sup> &asymp; 9.8 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></p>",
+      "answer": "A",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000017",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Rotational Motion",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A uniform rod of length L, pivoted at one end, is released from rest in the horizontal position. Its angular speed when it becomes vertical is<br />(A) &radic;(3g/L)<br />(B) &radic;(g/L)<br />(C) &radic;(2g/L)<br />(D) &radic;(6g/L)</h3>",
+      "solution": "<p>Loss in potential energy = M g L/2 = (1/2) I &omega;<sup>2</sup> with I = M L<sup>2</sup>/3. So &omega; = &radic;(3g/L).</p>",
+      "answer": "A",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000018",
+    "qid": null,
+    "questionType": "integerQuestion",
+    "subject": "Physics",
+    "chapter": "Oscillations",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "integerQuestion": {
+      "question": "<h3>Find the time period of a simple pendulum of length 1 m (g = 9.8 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math>).</h3>",
+      "solution": "<p>T = 2&pi; &radic;(L/g) = 2&pi; &radic;(1/9.8) &asymp; 2.006 s &asymp; 2 s</p>",
+      "answer": "2",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000019",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Zoology",
+    "chapter": "Chemical Coordination and Integration",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>Which hormone is secreted by the pineal gland?<br />(A) Melatonin<br />(B) Insulin<br />(C) Thyroxine<br />(D) Adrenaline</h3>",
+      "solution": "<p>The pineal gland secretes melatonin, which regulates the sleep-wake cycle.</p>",
+      "answer": "C",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  },
+  {
+    "_id": "aa0000000000000000000020",
+    "qid": null,
+    "questionType": "scq",
+    "subject": "Physics",
+    "chapter": "Newton's law of motion",
+    "concept": null,
+    "subConcept": null,
+    "level": "MEDIUM",
+    "error": 1,
+    "updatedAt": "2025-10-01T10:00:00Z",
+    "scq": {
+      "question": "<h3>A force of 10 N acts on a body of mass 5 kg. Its acceleration is<br />(A) 2 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(B) 4 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(C) 0.5 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math><br />(D) 50 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></h3>",
+      "solution": "<p>a = F / m = 20 / 5 = 4 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math></p>",
+      "answer": "B",
+      "quesImages": [],
+      "solutionImages": []
+    },
+    "errorHistory": []
+  }
+]

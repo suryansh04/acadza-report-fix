@@ -1,22 +1,38 @@
+import argparse
+from pathlib import Path
+
 from parse import PROJECT_DIR, load_json_file
+
+SCORED_FIELDS = ("verdict", "repair", "route")
+
+
+def accepts(expected_value: str | list | None, got_value: str | None) -> bool:
+    """An expected value can be a list when more than one answer is defensible."""
+    return got_value in expected_value if isinstance(expected_value, list) else got_value == expected_value
 
 
 def main() -> None:
-    results = {entry["reportId"]: entry for entry in load_json_file(PROJECT_DIR / "results.json")}
-    expected = {entry["reportId"]: entry for entry in load_json_file(PROJECT_DIR / "engine" / "expected.json")["reports"]}
+    parser = argparse.ArgumentParser(description="Compare results.json with hand-written expected verdicts.")
+    parser.add_argument("--results", type=Path, default=PROJECT_DIR / "results.json")
+    parser.add_argument("--expected", type=Path, default=PROJECT_DIR / "engine" / "expected.json")
+    args = parser.parse_args()
 
-    scores = {"verdict": 0, "repair": 0, "route": 0}
+    results = {entry["reportId"]: entry for entry in load_json_file(args.results)}
+    expected = {entry["reportId"]: entry for entry in load_json_file(args.expected)["reports"]}
+
+    scores = dict.fromkeys(SCORED_FIELDS, 0)
     differences = []
     unsafe = []
     for report_id, want in sorted(expected.items()):
         got = results[report_id]
-        for field in scores:
-            scores[field] += got[field] == want[field]
-        if any(got[field] != want[field] for field in scores):
+        matched = {field: accepts(want[field], got[field]) for field in SCORED_FIELDS}
+        for field, ok in matched.items():
+            scores[field] += ok
+        if not all(matched.values()):
             differences.append(f"{report_id}: got {got['verdict']}/{got['repair']}/{got['route']}, "
                                f"want {want['verdict']}/{want['repair']}/{want['route']}")
         # The most harmful mistake: a fix goes live that a teacher should have seen, or that was never needed.
-        if got["route"] == "auto_apply" and want["route"] != "auto_apply":
+        if got["route"] == "auto_apply" and not accepts(want["route"], "auto_apply"):
             unsafe.append(report_id)
 
     total = len(expected)
