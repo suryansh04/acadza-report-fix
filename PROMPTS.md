@@ -256,3 +256,13 @@ Format for each decision:
 - **Dropped:**
   - Fable 5.1, because it costs too much.
   - Haiku 5.5, because it is too weak for hard physics. One wrong solve can change a correct key.
+
+### 15. A real defect counts, even if the student's claim is wrong
+
+- **Problem:** In R040 the student wrote only "wrong". The key is correct, but option B has a spelling error ("Canolla"). In R004 the student claims 8225, which is wrong, but the key is also wrong.
+- **Decision:** If the engine finds a real defect in the question, the verdict is `defect`, even when the student's claim is wrong. The reply tells the student both facts.
+- **Why:**
+  - `no_error` means "checked and correct", and these questions are not correct.
+  - The README says that a short comment such as "wrong" can still point to a real defect.
+  - A broken question hurts every student, so we fix it when we find it.
+- **Dropped:** Judging only the student's claim. It would leave real defects live.
