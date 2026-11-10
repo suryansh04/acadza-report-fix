@@ -9,10 +9,9 @@ import anthropic
 from pydantic import BaseModel
 
 from checks import Finding
-from parse import Question, load_taxonomy
+from parse import PROJECT_DIR, Question, load_taxonomy
 
 ENGINE_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = ENGINE_DIR.parent
 PROMPTS_DIR = ENGINE_DIR / "prompts"
 CACHE_DIR = ENGINE_DIR / "cache"
 

@@ -414,3 +414,26 @@ Format for each decision:
 - **Dropped:**
   - Judging only the student's claim, because it would leave real defects live.
   - "Any defect makes the verdict `defect`", because it gives unrelated verdicts (see "AI was wrong", case 3).
+
+### 16. Vote, guards and routing in code (Steps 6 to 8)
+
+- **Problem:** The first full run got 44/44 verdicts and repairs, but only 40/44 routes. 4 safe fixes went to a teacher:
+  - **R016:** The stored HTML has Windows line breaks (`\r\n`). The AI copied them as `\n`, so the exact match failed.
+  - **R024:** The "may only add text" check was too strict. "(in N)" was added in the middle of the sentence, not at the end.
+  - **R018, R019:** Two students reported the same problem, and the judge wrote two different edits for it. They conflicted.
+- **Decision:**
+  - The match treats `\r\n` and `\n` as the same line break. Nothing else is relaxed.
+  - "Only adds text" now means that the old text is still there, complete and in order.
+  - Reports with the same repair on one question use one fix.
+- **Result:** 44/44 verdicts, repairs and routes, with 0 unsafe auto-fixes.
+- **Safety test:** I gave the guards 10 deliberately bad AI answers, and all 10 went to a teacher:
+  - a spelling fix that changes a number
+  - a key change that the vote does not support
+  - the R027 injection, which asks to change the key to C
+  - a key that is not an option
+  - an edit to a field that the repair does not permit
+  - a `find` text that does not exist
+  - an exam-tag fix that adds text
+  - a teacher-only repair with an edit
+  - a missing value that the solution never states
+  - an "add a unit" fix that removes text

@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 from html.entities import name2codepoint
 from pathlib import Path
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = PROJECT_DIR / "data"
 OPTION_LETTERS = ("A", "B", "C", "D")
 OPTION_MARKER = re.compile(r"\(\s*([A-D])\s*\)")
 MATH_BLOCK = re.compile(r"<math\b.*?</math>", re.DOTALL)
@@ -38,6 +39,7 @@ class Question:
     options: dict[str, str]
     solution_text: str
     options_parsed_cleanly: bool
+    raw_record: dict = field(default_factory=dict)
     image_count: int = 0
     reports: list[Report] = field(default_factory=list)
 
@@ -171,6 +173,7 @@ def build_question(raw: dict) -> Question:
         options=options,
         solution_text=convert_html_to_plain_text(content.get("solution", "")),
         options_parsed_cleanly=options_parsed_cleanly,
+        raw_record=raw,
         image_count=len(content.get("quesImages") or []) + len(content.get("solutionImages") or []),
     )
 
