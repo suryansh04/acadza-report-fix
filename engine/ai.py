@@ -182,7 +182,7 @@ def format_question_for_judge(question: Question, findings: list[Finding], solve
         for report in question.reports
     ) or "No student reports. Look only for other defects."
 
-    return f"""<question id="{question.question_id}" subject="{question.subject}" chapter="{question.chapter}" type="{QUESTION_TYPE_LABELS[question.question_type]}" last_edited="{question.updated_at}">
+    return f"""<question id="{question.question_id}" subject="{question.subject}" chapter="{question.chapter}" questionType="{question.question_type}" type_meaning="{QUESTION_TYPE_LABELS[question.question_type]}" last_edited="{question.updated_at}">
 <stem>{question.stem_text}</stem>
 <options>
 {options}

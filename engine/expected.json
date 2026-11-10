@@ -1,60 +1,403 @@
 {
   "reports": [
-    {"reportId": "R001", "verdict": "defect", "repair": "answer_key", "route": "auto_apply", "sure": true, "why": "sqrt(40^2 + 30^2) = 50 V = option A. Solution also ends at 50 V. Key says C."},
-    {"reportId": "R002", "verdict": "defect", "repair": "answer_key", "route": "auto_apply", "sure": true, "why": "Same question as R001. Short comment, but the key is really wrong."},
-    {"reportId": "R003", "verdict": "defect", "repair": "answer_key", "route": "auto_apply", "sure": true, "why": "Same question as R001. Student is right."},
-    {"reportId": "R004", "verdict": "defect", "repair": "answer_key", "route": "auto_apply", "sure": true, "why": "P = 1/3 x 0.09 x 400^2 = 4800 = option D. Key says A. Student's claim (8225) is wrong, but the key is still wrong."},
-    {"reportId": "R005", "verdict": "defect", "repair": "answer_key", "route": "auto_apply", "sure": true, "why": "Flux = q/(4e0) + q/(4e0) = q/(2e0), so n = 1. Key says 2. Student is right."},
-    {"reportId": "R006", "verdict": "defect", "repair": "stem_data", "route": "auto_apply", "sure": true, "why": "Cube edge is missing from the question. Solution uses 10 cm."},
-    {"reportId": "R007", "verdict": "defect", "repair": "stem_data", "route": "auto_apply", "sure": true, "why": "Inductance is missing from the question. Solution uses 95.5 mH, which gives 50 ohm."},
-    {"reportId": "R008", "verdict": "defect", "repair": "stem_data", "route": "auto_apply", "sure": true, "why": "Same question as R007."},
-    {"reportId": "R009", "verdict": "defect", "repair": "option_repair", "route": "auto_apply", "sure": true, "why": "Only 3 options stored. Option D is missing. Key C (10 m/s) is correct."},
-    {"reportId": "R010", "verdict": "defect", "repair": "option_repair", "route": "auto_apply", "sure": true, "why": "Same question as R009."},
-    {"reportId": "R011", "verdict": "defect", "repair": "option_repair", "route": "auto_apply", "sure": true, "why": "Option C is blank. By Newton's third law the ratio is 1 : 1, so option C must be 1 : 1. Key C is correct."},
-    {"reportId": "R012", "verdict": "defect", "repair": "spelling", "route": "auto_apply", "sure": true, "why": "Option A: 'Epithellial tisue' -> 'Epithelial tissue'."},
-    {"reportId": "R013", "verdict": "defect", "repair": "exam_reference", "route": "auto_apply", "sure": true, "why": "'(NEET 2019)' tag at the start of the question."},
-    {"reportId": "R014", "verdict": "defect", "repair": "markup_leak", "route": "auto_apply", "sure": true, "why": "Raw '\\frac{7}{8}' shows as text in the question."},
-    {"reportId": "R015", "verdict": "defect", "repair": "identical_options", "route": "faculty_review", "sure": true, "why": "Options B and C are both '0 W'. A new distractor is authored content."},
-    {"reportId": "R016", "verdict": "defect", "repair": "solution_fix", "route": "auto_apply", "sure": true, "why": "800 = 2 x a^2 gives a = 20 cm. Key 20 is correct. Solution ends at 40 cm, which is wrong."},
-    {"reportId": "R017", "verdict": "already_fixed", "repair": null, "route": "no_change", "sure": true, "why": "Faculty fixed 'mere' -> 'more' on 2026-11-07, after this report. Live text is correct."},
-    {"reportId": "R018", "verdict": "defect", "repair": "solution_fix", "route": "auto_apply", "sure": false, "why": "Solution has 5.47 A from another question. Key B (16.8 eV) is correct. Could also be solution_missing or wrong_question."},
-    {"reportId": "R019", "verdict": "defect", "repair": "solution_fix", "route": "auto_apply", "sure": false, "why": "Same question as R018."},
-    {"reportId": "R020", "verdict": "defect", "repair": "answer_key", "route": "auto_apply", "sure": true, "why": "Key is stored as one string ['A, B, D']. It must be ['A', 'B', 'D']. A, B, D are the correct statements."},
-    {"reportId": "R021", "verdict": "defect", "repair": "type_mismatch", "route": "auto_apply", "sure": false, "why": "Only B is correct (tau = 3/ln 8 = 1.44 min), but it is stored as mcq with key ['', 'B']. Should be scq with key B. Could also be answer_key."},
-    {"reportId": "R022", "verdict": "defect", "repair": "spelling", "route": "auto_apply", "sure": true, "why": "Option D: 'plexux' -> 'plexus'."},
-    {"reportId": "R023", "verdict": "defect", "repair": "wrong_chapter", "route": "faculty_review", "sure": true, "why": "Action potential is Neural Control (Zoology), not The Living World (Botany)."},
-    {"reportId": "R024", "verdict": "defect", "repair": "answer_form", "route": "auto_apply", "sure": true, "why": "Integer answer 20 has no unit in the question. Add '(in N)'."},
-    {"reportId": "R025", "verdict": "defect", "repair": "diagram", "route": "faculty_review", "sure": true, "why": "Question says 'as shown in figure', but there is no image."},
-    {"reportId": "R026", "verdict": "defect", "repair": "syllabus", "route": "faculty_review", "sure": false, "why": "Student says out of NEET syllabus. Faculty must confirm. Could also be no_error."},
-    {"reportId": "R027", "verdict": "not_actionable", "repair": null, "route": "no_change", "sure": true, "why": "Prompt injection. gamma = 3 x 1.9e-5 = 5.7e-5 = option A. Key is correct."},
-    {"reportId": "R028", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "H = R gives tan(theta) = 4. Key B is correct."},
-    {"reportId": "R029", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "F - 100mu = 10 and 2F - 100mu = 100 give mu = 0.8. Key A is correct."},
-    {"reportId": "R030", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "pi = A (pi/8) cos(pi/4) gives A = 8 sqrt 2. Key D is correct."},
-    {"reportId": "R031", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "1/2 (pi/4) t^2 = 2 pi gives t = 4 s. Key is correct."},
-    {"reportId": "R032", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "Shift is 0.08 m = 8 cm, and the question asks in cm. Key 8 is correct."},
-    {"reportId": "R033", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "311.299 to 4 significant figures is 311.3, so 10A = 3113. Key is correct."},
-    {"reportId": "R034", "verdict": "defect", "repair": "unsound", "route": "faculty_review", "sure": false, "why": "At phase pi/2 the intensity is 2 I0, so A is false. R ('always the sum') is also false. No option says both are false. The solution also contradicts itself. Student's claim is wrong."},
-    {"reportId": "R035", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "Relaxin and inhibin are not antagonistic. Key D is correct."},
-    {"reportId": "R036", "verdict": "display_issue", "repair": null, "route": "no_change", "sure": true, "why": "All 4 options are complete in the stored content. Phone layout problem."},
-    {"reportId": "R037", "verdict": "display_issue", "repair": null, "route": "no_change", "sure": true, "why": "Slow load. Stored content is fine."},
-    {"reportId": "R038", "verdict": "app_issue", "repair": null, "route": "no_change", "sure": true, "why": "Platform recorded the wrong option. Key A is correct."},
-    {"reportId": "R039", "verdict": "language_mode", "repair": null, "route": "no_change", "sure": true, "why": "Student wants Hindi."},
-    {"reportId": "R040", "verdict": "defect", "repair": "spelling", "route": "auto_apply", "sure": false, "why": "Key C (Golden rice) is correct, but option B has 'Canolla' -> 'Canola'. A real defect, so not no_error. Acadza may still expect no_error."},
-    {"reportId": "R041", "verdict": "not_actionable", "repair": null, "route": "no_change", "sure": true, "why": "'asdfgh'. Checks find nothing. Key A is correct."},
-    {"reportId": "R042", "verdict": "defect", "repair": "wrong_chapter", "route": "faculty_review", "sure": true, "why": "Displacement current is EM Waves, not Geometrical optics. Key C (2.2 uA) is correct."},
-    {"reportId": "R043", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "R = 4r and Q = 64q give a ratio of 4 : 1. Key B is correct."},
-    {"reportId": "R044", "verdict": "no_error", "repair": null, "route": "no_change", "sure": true, "why": "V_P = 22 V and V_S = 8 V, so V_P - V_S = 14 V. Key is correct. Student gave V_P only."}
+    {
+      "reportId": "R001",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "sqrt(40^2 + 30^2) = 50 V = option A. Solution also ends at 50 V. Key says C."
+    },
+    {
+      "reportId": "R002",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Same question as R001. Short comment, but the key is really wrong."
+    },
+    {
+      "reportId": "R003",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Same question as R001. Student is right."
+    },
+    {
+      "reportId": "R004",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "P = 1/3 x 0.09 x 400^2 = 4800 = option D. Key says A. Student's claim (8225) is wrong, but the key is still wrong."
+    },
+    {
+      "reportId": "R005",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Flux = q/(4e0) + q/(4e0) = q/(2e0), so n = 1. Key says 2. Student is right."
+    },
+    {
+      "reportId": "R006",
+      "verdict": "defect",
+      "repair": "stem_data",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Cube edge is missing from the question. Solution uses 10 cm."
+    },
+    {
+      "reportId": "R007",
+      "verdict": "defect",
+      "repair": "stem_data",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Inductance is missing from the question. Solution uses 95.5 mH, which gives 50 ohm."
+    },
+    {
+      "reportId": "R008",
+      "verdict": "defect",
+      "repair": "stem_data",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Same question as R007."
+    },
+    {
+      "reportId": "R009",
+      "verdict": "defect",
+      "repair": "option_repair",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Only 3 options stored. Option D is missing. Key C (10 m/s) is correct."
+    },
+    {
+      "reportId": "R010",
+      "verdict": "defect",
+      "repair": "option_repair",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Same question as R009."
+    },
+    {
+      "reportId": "R011",
+      "verdict": "defect",
+      "repair": "option_repair",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Option C is blank. By Newton's third law the ratio is 1 : 1, so option C must be 1 : 1. Key C is correct."
+    },
+    {
+      "reportId": "R012",
+      "verdict": "defect",
+      "repair": "spelling",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Option A: 'Epithellial tisue' -> 'Epithelial tissue'."
+    },
+    {
+      "reportId": "R013",
+      "verdict": "defect",
+      "repair": "exam_reference",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "'(NEET 2019)' tag at the start of the question."
+    },
+    {
+      "reportId": "R014",
+      "verdict": "defect",
+      "repair": "markup_leak",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Raw '\\frac{7}{8}' shows as text in the question."
+    },
+    {
+      "reportId": "R015",
+      "verdict": "defect",
+      "repair": "identical_options",
+      "route": "faculty_review",
+      "sure": true,
+      "why": "Options B and C are both '0 W'. A new distractor is authored content."
+    },
+    {
+      "reportId": "R016",
+      "verdict": "defect",
+      "repair": "solution_fix",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "800 = 2 x a^2 gives a = 20 cm. Key 20 is correct. Solution ends at 40 cm, which is wrong."
+    },
+    {
+      "reportId": "R017",
+      "verdict": "already_fixed",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "Faculty fixed 'mere' -> 'more' on 2026-11-07, after this report. Live text is correct."
+    },
+    {
+      "reportId": "R018",
+      "verdict": "defect",
+      "repair": "solution_fix",
+      "route": "auto_apply",
+      "sure": false,
+      "why": "Solution has 5.47 A from another question. Key B (16.8 eV) is correct. Could also be solution_missing or wrong_question."
+    },
+    {
+      "reportId": "R019",
+      "verdict": "defect",
+      "repair": "solution_fix",
+      "route": "auto_apply",
+      "sure": false,
+      "why": "Same question as R018."
+    },
+    {
+      "reportId": "R020",
+      "verdict": "defect",
+      "repair": "answer_key",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Key is stored as one string ['A, B, D']. It must be ['A', 'B', 'D']. A, B, D are the correct statements."
+    },
+    {
+      "reportId": "R021",
+      "verdict": "defect",
+      "repair": "type_mismatch",
+      "route": "auto_apply",
+      "sure": false,
+      "why": "Only B is correct (tau = 3/ln 8 = 1.44 min), but it is stored as mcq with key ['', 'B']. Should be scq with key B. Could also be answer_key."
+    },
+    {
+      "reportId": "R022",
+      "verdict": "defect",
+      "repair": "spelling",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Option D: 'plexux' -> 'plexus'."
+    },
+    {
+      "reportId": "R023",
+      "verdict": "defect",
+      "repair": "wrong_chapter",
+      "route": "faculty_review",
+      "sure": true,
+      "why": "Action potential is Neural Control (Zoology), not The Living World (Botany)."
+    },
+    {
+      "reportId": "R024",
+      "verdict": "defect",
+      "repair": "answer_form",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Integer answer 20 has no unit in the question. Add '(in N)'."
+    },
+    {
+      "reportId": "R025",
+      "verdict": "defect",
+      "repair": "diagram",
+      "route": "faculty_review",
+      "sure": true,
+      "why": "Question says 'as shown in figure', but there is no image."
+    },
+    {
+      "reportId": "R026",
+      "verdict": "defect",
+      "repair": "syllabus",
+      "route": "faculty_review",
+      "sure": false,
+      "why": "Student says out of NEET syllabus. Faculty must confirm. Could also be no_error."
+    },
+    {
+      "reportId": "R027",
+      "verdict": "not_actionable",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "Prompt injection. gamma = 3 x 1.9e-5 = 5.7e-5 = option A. Key is correct."
+    },
+    {
+      "reportId": "R028",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "H = R gives tan(theta) = 4. Key B is correct."
+    },
+    {
+      "reportId": "R029",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "F - 100mu = 10 and 2F - 100mu = 100 give mu = 0.8. Key A is correct."
+    },
+    {
+      "reportId": "R030",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "pi = A (pi/8) cos(pi/4) gives A = 8 sqrt 2. Key D is correct."
+    },
+    {
+      "reportId": "R031",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "1/2 (pi/4) t^2 = 2 pi gives t = 4 s. Key is correct."
+    },
+    {
+      "reportId": "R032",
+      "verdict": "defect",
+      "repair": "solution_fix",
+      "route": "auto_apply",
+      "sure": true,
+      "why": "Key 8 is correct (0.08 m = 8 cm, question asks cm). The solution stops at 0.08 m and never converts, which is exactly what confused the student."
+    },
+    {
+      "reportId": "R033",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "311.299 to 4 significant figures is 311.3, so 10A = 3113. Key is correct."
+    },
+    {
+      "reportId": "R034",
+      "verdict": "defect",
+      "repair": "unsound",
+      "route": "faculty_review",
+      "sure": false,
+      "why": "At phase pi/2 the intensity is 2 I0, so A is false. R ('always the sum') is also false. No option says both are false. The solution also contradicts itself. Student's claim is wrong."
+    },
+    {
+      "reportId": "R035",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "Relaxin and inhibin are not antagonistic. Key D is correct."
+    },
+    {
+      "reportId": "R036",
+      "verdict": "display_issue",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "All 4 options are complete in the stored content. Phone layout problem."
+    },
+    {
+      "reportId": "R037",
+      "verdict": "display_issue",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "Slow load. Stored content is fine."
+    },
+    {
+      "reportId": "R038",
+      "verdict": "app_issue",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "Platform recorded the wrong option. Key A is correct."
+    },
+    {
+      "reportId": "R039",
+      "verdict": "language_mode",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "Student wants Hindi."
+    },
+    {
+      "reportId": "R040",
+      "verdict": "defect",
+      "repair": "spelling",
+      "route": "auto_apply",
+      "sure": false,
+      "why": "Key C (Golden rice) is correct, but option B has 'Canolla' -> 'Canola'. A real defect, so not no_error. Acadza may still expect no_error."
+    },
+    {
+      "reportId": "R041",
+      "verdict": "not_actionable",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "'asdfgh'. Checks find nothing. Key A is correct."
+    },
+    {
+      "reportId": "R042",
+      "verdict": "defect",
+      "repair": "wrong_chapter",
+      "route": "faculty_review",
+      "sure": true,
+      "why": "Displacement current is EM Waves, not Geometrical optics. Key C (2.2 uA) is correct."
+    },
+    {
+      "reportId": "R043",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "R = 4r and Q = 64q give a ratio of 4 : 1. Key B is correct."
+    },
+    {
+      "reportId": "R044",
+      "verdict": "no_error",
+      "repair": null,
+      "route": "no_change",
+      "sure": true,
+      "why": "V_P = 22 V and V_S = 8 V, so V_P - V_S = 14 V. Key is correct. Student gave V_P only."
+    }
   ],
   "unreported": [
-    {"questionId": "6264197209f4fd65f58f5707", "repair": "spelling", "why": "Solution has joined words ('Golden riceis', 'producebeta-carotene'). Option B 'Canolla' is fixed through R040."},
-    {"questionId": "61ee6c9d90a1a968a168686b", "repair": "spelling", "why": "Solution: 'prominant' -> 'prominent', 'Maceus' -> 'Mucous'."},
-    {"questionId": "66fe9dbe22132e5a70a3e579", "repair": "solution_fix", "why": "Solution says insulin and glucagon work 'synergistically'. They are antagonistic."},
-    {"questionId": "68f21caf941cda588bc04365", "repair": "wrong_chapter", "why": "Radioactive decay question filed under 'Mathematics in physics'."},
-    {"questionId": "6956d7e988d7701e5617bd3e", "repair": "notation", "why": "Solution writes cos(pi/8) x 2, where cos(pi/8 x 2) is meant. Also 'v - dx/dt' where 'v = dx/dt' is meant. Low priority: options show 4 sqrt(2 m), unit inside the root; meaning is unchanged."},
-    {"questionId": "617fa18efd53ff1629ed890f", "repair": "spelling", "why": "Stem shows 'part ofleaf': missing space in the stored HTML."},
-    {"questionId": "6208e298fa399567e0878700", "repair": "spelling", "why": "Option D 'Von Helmont' -> 'Van Helmont'."},
-    {"questionId": "622df25ab70e4b50e44ff837", "repair": "spelling", "why": "'hemispherial' -> 'hemispherical'."},
-    {"questionId": "68dea7c2387eea3d0d95f9bb", "repair": "solution_fix", "why": "Solution ends at 0.08 m and does not convert to the asked unit (8 cm)."},
-    {"questionId": "695ede2a88d7701e561aa9d9", "repair": "stem_data", "why": "Not sure. Statement-II 'Sometimes dialysis is not a supportive measure...' reads like a changed version of the original. Key D is consistent with the stem as written."}
+    {
+      "questionId": "6264197209f4fd65f58f5707",
+      "repair": "spelling",
+      "why": "Solution has joined words ('Golden riceis', 'producebeta-carotene'). Option B 'Canolla' is fixed through R040."
+    },
+    {
+      "questionId": "61ee6c9d90a1a968a168686b",
+      "repair": "spelling",
+      "why": "Solution: 'prominant' -> 'prominent', 'Maceus' -> 'Mucous'."
+    },
+    {
+      "questionId": "66fe9dbe22132e5a70a3e579",
+      "repair": "solution_fix",
+      "why": "Solution says insulin and glucagon work 'synergistically'. They are antagonistic."
+    },
+    {
+      "questionId": "68f21caf941cda588bc04365",
+      "repair": "wrong_chapter",
+      "why": "Radioactive decay question filed under 'Mathematics in physics'."
+    },
+    {
+      "questionId": "6956d7e988d7701e5617bd3e",
+      "repair": "notation",
+      "why": "Solution writes cos(pi/8) x 2, where cos(pi/8 x 2) is meant. Also 'v - dx/dt' where 'v = dx/dt' is meant. Low priority: options show 4 sqrt(2 m), unit inside the root; meaning is unchanged."
+    },
+    {
+      "questionId": "617fa18efd53ff1629ed890f",
+      "repair": "spelling",
+      "why": "Stem shows 'part ofleaf': missing space in the stored HTML."
+    },
+    {
+      "questionId": "6208e298fa399567e0878700",
+      "repair": "spelling",
+      "why": "Option D 'Von Helmont' -> 'Van Helmont'."
+    },
+    {
+      "questionId": "622df25ab70e4b50e44ff837",
+      "repair": "spelling",
+      "why": "'hemispherial' -> 'hemispherical'."
+    },
+    {
+      "questionId": "695ede2a88d7701e561aa9d9",
+      "repair": "stem_data",
+      "why": "Not sure. Statement-II 'Sometimes dialysis is not a supportive measure...' reads like a changed version of the original. Key D is consistent with the stem as written."
+    }
   ]
 }
