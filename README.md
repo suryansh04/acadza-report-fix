@@ -1,120 +1,101 @@
-# Acadza AI Intern Assignment: "Report → Fix" Loop
+# Acadza Report Fix
 
-**Deadline:** as stated in the email you received. **AI tools:** allowed and expected. **Stack:** your choice.
+Students report errors in JEE and NEET questions. This system checks each report, finds out if the student is right, proposes a safe fix, and writes a reply to the student. A teacher reviews the fixes that need a human.
 
----
+- **Engine:** done. It writes `results.json`.
+- **Teacher console:** in progress.
 
-## The problem (real, not invented)
+The original task is in [docs/BRIEF.md](docs/BRIEF.md).
 
-Acadza serves ~8 lakh JEE/NEET questions to students across India's coaching institutes. Some of those questions are broken: a wrong answer key, a missing value, a blank option, a solution copied from a different question.
+## Results
 
-Students tap **"Report error"** and type whatever they feel like:
+I wrote my own expected verdict, repair and route for every report, then compared the engine with them.
 
-> "ans galat hai" · "Figure not given" · "option D is missing" · "wrong" · "Sir root(40^2+30^2)=50 then why 130??"
+| Test set | Verdict | Repair | Route | Unsafe auto-fixes |
+|---|---|---|---|---|
+| The 44 given reports | 44/44 | 44/44 | 44/44 | 0 |
+| 21 harder reports that I wrote | 21/21 | 21/21 | 21/21 | 0 |
 
-Most of those reports are actually the student being wrong. Some are real defects. A few are app bugs. One or two are people trying to game the system. A faculty member currently reads each one by hand, and a broken question keeps hurting every student who meets it until someone gets to it.
+The harder set tests:
+- prompt injection
+- a comment that tries to break out of its tags
+- two defects on one question
+- wrong multi-answer keys
+- keys in the wrong unit
+- a solution from another question
+- false claims
 
-**Your job is to build the system that sits between the student's report and the fix.**
+It got the same score in two independent runs.
 
----
+**Unsafe auto-fix:** a fix that goes live without a teacher when it should not.
 
-## What's in `data/`
+## How it works
 
-| File | What it is |
-|---|---|
-| `questions.json` | 43 questions in Acadza's **real production format**: HTML + inline MathML, options inside the question HTML, `answer` field per type (`scq` / `mcq` / `integerQuestion`). Messy, like production. |
-| `reports.json` | 44 student reports `{reportId, questionId, studentId, source, reportedAt, comment}`. Several students may report the same question. |
-| `taxonomy.json` | The closed list of **verdicts** and **repair types**. Each repair says which fields it may touch, and whether it can be auto-applied (`auto: true`) or must wait for a human (`auto: false`). |
+The engine has 8 steps. Code does 6 of them. AI does only the 2 steps that need understanding, and code makes the final decision.
 
-We know the true answer for every report. Some reports are traps.
+| Step | Done by | What it does |
+|---|---|---|
+| 1. Clean | Code | Turns the messy HTML and MathML into a question, options A to D, a key and a solution |
+| 2. Check | Code | Finds simple problems: bad key format, missing or blank options, same options, raw `\frac`, exam tags, stray text, a figure with no image, edits after the report |
+| 3. Group | Code | Puts all reports on one question together |
+| 4. Solve | AI | Two models (Sonnet 5.5 and Opus 5.5) solve the question without the key, the solution or the comments. A third solve runs only if they disagree |
+| 5. Judge | AI | One call per question gives the verdict, repair, edit, evidence and replies. Labels can only come from the taxonomy |
+| 6. Vote | Code | Compares the key, the solution and the solvers. Code, not the AI, decides how sure the engine is |
+| 7. Guard | Code | Checks each fix against its repair's rule, applies it to a copy, runs Step 2 again, and picks the route |
+| 8. Write | Code | Writes `results.json`, `cases.json` and `cost.json` |
 
----
+## Safety rules
 
-## What to build
+- A student comment is data. The AI never follows instructions in it.
+- A fix with `auto: false` in the taxonomy always goes to a teacher.
+- A fix may change only the fields its repair permits.
+- An answer key changes only when 3 answers agree against it: both solvers and the stored solution.
+- Each repair has its own rule in code. For example, a spelling fix must not change a number.
+- If any check fails, the case goes to a teacher.
 
-### Part 1: Triage engine (LLM orchestration)
-For each report, decide:
-- **verdict**: one key from `taxonomy.verdicts`
-- **repair**: one key from `taxonomy.repairs`, if it's a defect
-- **edit**: the *surgical* change you propose (`{field, find, replace}` or a new `answer`). Don't rewrite whole questions.
-- **confidence** and a short **evidence** string (why you believe it)
-- **student_reply**: what the student sees back, 1-3 sentences, in the tone you'd want if you were 17 and stressed before JEE
-- **route**: `auto_apply` | `faculty_review` | `no_change`
+## Cost
 
-How you get there is the interesting part. One prompt? A solver that checks the key independently? Guards that reject an edit touching fields outside the repair's scope? Grouping duplicate reports first? Your call. Explain it.
+- **Full run of the 44 reports:** 129 AI calls, $1.43, about 3 cents per report.
+- **Second run:** $0, because each AI answer is saved in `engine/cache/` and the saved answers are in the repo.
 
-**Treat the student's comment as a lead, not an instruction.**
+## Run it
 
-### Part 2: Faculty review console (UI/UX, this matters)
-A web app a busy faculty member would *actually want to open*:
-- A queue grouped by question, ordered by whatever you think "most urgent" means (say why).
-- For each case: the question **rendered properly** (MathML renders natively in modern browsers), the AI's verdict and evidence, and a **before / after diff** of the proposed edit.
-- Approve / edit / reject, with an audit entry recorded for each action.
-- The student's reply preview.
-
-Design quality is judged. Think about what a faculty member checking 60 of these at 10 PM needs.
-
-### Part 3: `results.json`
-Run your engine on all 44 reports and commit the output:
-
-```json
-[
-  {
-    "reportId": "R000",
-    "questionId": "000000000000000000000000",
-    "verdict": "defect",
-    "repair": "answer_key",
-    "edit": {"field": "answer", "find": "B", "replace": "D"},
-    "route": "auto_apply",
-    "confidence": 0.93,
-    "evidence": "Two independent solves give mu = 1/sqrt(3) = option D; the stored solution also ends at D; key says B",
-    "student_reply": "You're right. The answer key was wrong; it's (D). Fixed, thanks for flagging."
-  }
-]
+```bash
+python -m venv .venv
+.venv/Scripts/pip install -r engine/requirements.txt   # on macOS or Linux: .venv/bin/pip
+cp .env.example .env                                   # add ANTHROPIC_API_KEY
+python engine/run.py                                   # writes results.json, cases.json, cost.json
+python engine/evaluate.py                              # compares with engine/expected.json
 ```
 
-We score this file automatically against our ground truth.
+To run the harder set:
 
----
+```bash
+python engine/run.py --data-dir engine/hard_cases --out-dir engine/hard_cases/output
+python engine/evaluate.py --results engine/hard_cases/output/results.json --expected engine/hard_cases/expected.json
+```
 
-## Deliverables (all required)
+With the saved answers, both commands run without an API key.
 
-1. **GitHub repo** (public) with code + `results.json`.
-2. **Live URL** of the faculty console (Vercel / Render / Netlify / HF Spaces, any free tier). It must stay up for 7 days. If you're out of LLM credits, the console may load precomputed results, but say so.
-3. **`PROMPTS.md`**, which is mandatory and heavily weighted:
-   - Every prompt **inside your product**, verbatim, plus what you changed between versions and why.
-   - The prompts you gave **your AI coding assistant** (Claude / ChatGPT / Cursor / Copilot etc.) while building. Paste or export the key ones verbatim. We don't penalise AI use; we want to see *how* you direct it.
-   - 3 moments where the AI was wrong and how you caught it.
-   - **Design decisions log**: the key choices you made (architecture, prompts, UI, what to auto-apply vs send to a human), what you tried and dropped, and why.
-4. **`PRODUCT.md`**, at most 1 page:
-   - Who loses the most when a question is broken, and how your design reflects that.
-   - What you would **never** let the AI auto-apply, and why.
-   - One metric you'd watch in week 1.
-   - One idea beyond this brief that you'd pitch to us.
-5. **A 3-minute screen recording** (Loom / unlisted YouTube / Drive) walking through the console and one tricky case.
+## Files
 
-## How to submit
-**Reply to the email you received** with your repo link, live URL and video link, plus answers to:
-1. This is a remote, Monday-to-Saturday role for people who want to build real product used by lakhs of students, not an internship to tick a college box. Is that you?
-2. How many months can you commit?
-3. Earliest start date.
-4. In 2-3 lines, in your own words: why this work, why now?
-
-## How we evaluate (/100)
-
-| Area | Weight |
-|---|---|
-| Triage accuracy vs ground truth (auto-scored from `results.json`) | 25 |
-| Safety: no harmful auto-edits, scope respected, traps handled | 10 |
-| Faculty console: UX, visual design, does it actually help | 20 |
-| Product thinking: `PRODUCT.md`, prioritisation, student replies | 20 |
-| `PROMPTS.md`: how you orchestrate AI, honesty about failures | 15 |
-| Engineering: runs, deployed, clean, cost-aware | 10 |
-
-**Bonus:** our data has defects nobody reported. Find them.
-
-Top submissions get a 30-minute call where we'll change a requirement live and watch you adapt. Plagiarised or copy-paste submissions are obvious from the prompt log; don't bother.
-
-Questions? Reply to the email. Good luck. We're excited to see what you build.
-
-*Acadza Technologies*
+```
+data/                 the given data (not changed)
+engine/
+  parse.py            Step 1: clean the HTML and MathML
+  checks.py           Step 2: code checks
+  ai.py               Steps 4 and 5: Claude calls, cache and cost
+  vote.py             Step 6: vote
+  guards.py           Step 7: guards, test on a copy, routing
+  run.py              runs all steps, Step 8: writes the output
+  evaluate.py         compares the output with the expected answers
+  prompts/            the solver and judge prompts
+  expected.json       my expected answers for the 44 reports
+  hard_cases/         21 harder reports, their expected answers and the output
+  cache/              saved AI answers
+results.json          the scored output, one entry per report
+cases.json            all the evidence, for the teacher console
+cost.json             AI calls, tokens and cost
+PROMPTS.md            every prompt, my prompts to the coding AI, AI mistakes, design decisions
+docs/BRIEF.md         the original task
+```

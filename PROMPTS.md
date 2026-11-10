@@ -6,7 +6,7 @@ It has 4 parts:
 
 1. The prompts in my product
 2. The prompts I gave my coding AI
-3. Three times the AI was wrong
+3. Times the AI was wrong
 4. My design decisions
 
 ---
@@ -236,7 +236,7 @@ Format for each prompt:
 
 ---
 
-## 3. Three times the AI was wrong
+## 3. Times the AI was wrong
 
 ### 1. It said Watermelon UI had no table or badge components
 
@@ -367,7 +367,7 @@ Format for each decision:
 
 - **Problem:** AI tools tend to add too many files and layers.
 - **Decision:**
-  - `engine/`: 6 small files, one for each step. AI answers are saved in `engine/cache/`.
+  - `engine/`: one small file for each step. These are `parse.py`, `checks.py`, `ai.py`, `vote.py` and `guards.py`, plus `run.py`, which runs them all, and `evaluate.py`, which scores the output. AI answers are saved in `engine/cache/`.
   - `backend/`: `main.py` (3 routes) and `db.py` (1 table, `audit_log`). FastAPI also serves the built frontend.
   - `frontend/`: 3 pages (Home, Review, Audit log) and 3 main components (question, diff, action bar).
 - **Why:**
