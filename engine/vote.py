@@ -8,6 +8,8 @@ from parse import Question
 
 # Only rounding counts as the same value: 3113 and 3112.99 match, 3113 and 3100 do not.
 NUMBER_TOLERANCE = 0.0001
+# Numerical answers are given to two decimal places, so 0.67 and 0.6667 are the same answer.
+TWO_DECIMAL_ROUNDING = 0.005
 MATH_MINUS_SIGN = "−"
 CONFIDENCE_BY_OUTCOME = {
     "all_agree": 0.95,
@@ -39,7 +41,8 @@ def normalize_answer(value: Any, question_type: str) -> str | None:
         return None
     if question_type == "integerQuestion":
         match = re.search(r"-?\d+(\.\d+)?", str(value).replace(MATH_MINUS_SIGN, "-"))
-        return format(float(match.group(0)), "g") if match else None
+        # Plain "g" keeps only 6 digits, which would turn a key of 1234567 into 1.23457e+06.
+        return format(float(match.group(0)), ".15g") if match else None
     letters = extract_option_letters(value)
     if not letters or (question_type == "scq" and len(letters) != 1):
         return None
@@ -51,7 +54,7 @@ def answers_match(first: str | None, second: str | None, question_type: str) -> 
         return False
     if question_type == "integerQuestion":
         a, b = float(first), float(second)
-        return abs(a - b) <= NUMBER_TOLERANCE * max(abs(a), abs(b), 1.0)
+        return abs(a - b) <= max(NUMBER_TOLERANCE * max(abs(a), abs(b)), TWO_DECIMAL_ROUNDING)
     return first == second
 
 

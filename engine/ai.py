@@ -89,13 +89,17 @@ class ModelRefusedError(Exception):
     pass
 
 
+def remove_matching_quotes(value: str) -> str:
+    return value[1:-1] if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"" else value
+
+
 def load_env_file(path: Path = PROJECT_DIR / ".env") -> None:
     if not path.exists():
         return
     for line in path.read_text(encoding="utf-8").splitlines():
         key, separator, value = line.partition("=")
         if separator and key.strip() and not key.strip().startswith("#"):
-            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+            os.environ.setdefault(key.strip(), remove_matching_quotes(value.strip()))
 
 
 @cache

@@ -211,6 +211,17 @@ List any real defect in this question that no report covers, with the repair and
 
    For the dropped-fix bug, the first idea was "one fix per repair type". The better fix is "one fix per defect": two fixes merge only when they change the same text. Every fix got its own test.
 
+7. **Prompt:** "Run `/code-review` and fix the bugs."
+   **Why:** A second reviewer finds what the author misses, even when the author is also an AI.
+   **Result:** It found 9 issues in the last commit and fixed them:
+   - my new number tolerance broke small decimals (see "AI was wrong", case 4)
+   - several fixes on one question could edit each other's new text
+   - a merge could drop one edit of a fix
+   - a multi-answer solution check never matched
+   - long integer keys were shortened to 6 digits
+
+   The score stayed at 44/44, and 11 of 11 bad AI answers still went to a teacher.
+
 <!--
 Format for each prompt:
 
@@ -254,6 +265,13 @@ Format for each prompt:
   - Rule 15 is now more exact: a defect changes the verdict only if it is about what the student reported.
   - A display detail that does not change the meaning is not a defect.
 - **Lesson:** "Technically wrong" is not the same as "harmful to a student". Judge a defect by its effect on the student.
+
+### 4. Its own bug fix created a new bug
+
+- **Error:** In the file review, the AI found that a 0.5% number tolerance was too loose (3113 matched 3100). It changed it to 0.01%. That is too strict for small decimals: 0.67 and 0.6667 no longer matched. So a correct key of 0.67 could be "corrected" automatically.
+- **How I found it:** I ran a separate code review (`/code-review --fix`) on the latest commit. It checked the changed lines against edge cases and found the problem.
+- **Fix:** The tolerance is now the larger of 0.01% and 0.005, which is half of the second decimal place. 3113 matches 3112.99, 0.67 matches 0.6667, and 3113 does not match 3100.
+- **Lesson:** A fix needs its own review. Test the edge cases on both sides of the change, not only the case that started it.
 
 <!--
 Format for each case:
