@@ -26,9 +26,12 @@ CASES_PATH = PROJECT_DIR / "cases.json"
 FRONTEND_DIST = PROJECT_DIR / "frontend" / "dist"
 
 
+QUESTION_TYPES = ("scq", "mcq", "integerQuestion")
+
+
 class ActionRequest(BaseModel):
     report_id: str
-    action: Literal["approve", "edit", "reject", "undo"]
+    action: Literal["approve", "edit", "reject"]
     edits: list[Edit] = []
     reply: str = ""
     note: str = ""
@@ -36,9 +39,13 @@ class ActionRequest(BaseModel):
     save_anyway: bool = False
 
 
-class BulkActionRequest(BaseModel):
+class BulkApproveRequest(BaseModel):
     report_ids: list[str] = Field(min_length=1)
-    action: Literal["approve", "undo"]
+    reviewer: str
+
+
+class UndoRequest(BaseModel):
+    entry_ids: list[int] = Field(min_length=1)
     reviewer: str
 
 
@@ -65,8 +72,7 @@ def find_broken_math(markup: str) -> list[str]:
     return broken
 
 
-def find_typed_key_warnings(question: Question, typed_key: str) -> list[str]:
-    question_type = question.question_type
+def find_typed_key_warnings(question: Question, typed_key: str, question_type: str) -> list[str]:
     parts = [part.strip().upper() for part in typed_key.split(",") if part.strip()]
     if question_type == "integerQuestion":
         return [] if re.fullmatch(r"-?\d+(\.\d+)?", typed_key.strip()) else [f"An integer key must be a number, not '{typed_key}'."]
@@ -80,7 +86,11 @@ def find_typed_key_warnings(question: Question, typed_key: str) -> list[str]:
 
 def find_format_warnings(question: Question, edits: list[Edit]) -> list[str]:
     """Format checks for a teacher's edit. They warn and never block: the teacher has the final word."""
-    warnings = [warning for edit in edits if edit.field == "answer" for warning in find_typed_key_warnings(question, edit.replace)]
+    # A key typed together with a type change is checked against the new type.
+    question_type = next((edit.replace for edit in edits if edit.field == "questionType"), question.question_type)
+    if question_type not in QUESTION_TYPES:
+        return [f"The question type must be one of {', '.join(QUESTION_TYPES)}, not '{question_type}'."]
+    warnings = [warning for edit in edits if edit.field == "answer" for warning in find_typed_key_warnings(question, edit.replace, question_type)]
     for edit in edits:
         if edit.field in ("question", "solution") and len(find_edit_spans(raw_html_for_field(question, edit.field), edit.find)) != 1:
             warnings.append(f"The text to replace was not found exactly once in the {edit.field}.")
@@ -94,12 +104,30 @@ def find_format_warnings(question: Question, edits: list[Edit]) -> list[str]:
     return warnings
 
 
+def current_decisions() -> dict[str, dict]:
+    """The decision that stands for each report: its latest audit entry, unless that entry is an undo."""
+    latest = {}
+    for entry in reversed(db.list_audit_entries()):
+        latest[entry["report_id"]] = entry
+    return {report_id: entry for report_id, entry in latest.items() if entry["action"] != "undo"}
+
+
+def require_reviewer(reviewer: str) -> str:
+    if not reviewer.strip():
+        raise HTTPException(422, "Add your name before you act on a case, so the audit log shows who did it.")
+    return reviewer.strip()
+
+
+def require_known_reports(report_ids: list[str]) -> None:
+    unknown = [report_id for report_id in report_ids if report_id not in QUESTION_ID_BY_REPORT]
+    if unknown:
+        raise HTTPException(404, f"Unknown reports: {', '.join(unknown)}.")
+
+
 @app.get("/api/cases")
 def get_cases() -> list[dict]:
-    latest_action = {}
-    for entry in reversed(db.list_audit_entries()):
-        latest_action[entry["report_id"]] = None if entry["action"] == "undo" else entry
-    return [{**case, "reports": [{**report, "teacher_action": latest_action.get(report["report_id"])} for report in case["reports"]]}
+    decisions = current_decisions()
+    return [{**case, "reports": [{**report, "teacher_action": decisions.get(report["report_id"])} for report in case["reports"]]}
             for case in CASES]
 
 
@@ -110,32 +138,46 @@ def get_audit_log() -> list[dict]:
 
 @app.post("/api/actions")
 def save_action(request: ActionRequest) -> dict:
-    question_id = QUESTION_ID_BY_REPORT.get(request.report_id)
-    if question_id is None:
-        raise HTTPException(404, f"Unknown report {request.report_id}.")
-    if not request.reviewer.strip():
-        raise HTTPException(422, "Add your name before you act on a case, so the audit log shows who did it.")
+    require_known_reports([request.report_id])
+    reviewer = require_reviewer(request.reviewer)
+    # One decision per report: a double key press or a second browser tab must not save twice.
+    if request.report_id in current_decisions():
+        raise HTTPException(409, f"{request.report_id} already has a decision. Undo it first to change it.")
 
+    question_id = QUESTION_ID_BY_REPORT[request.report_id]
     if request.action == "edit" and not request.save_anyway:
         warnings = find_format_warnings(QUESTIONS[question_id], request.edits)
         if warnings:
             raise HTTPException(409, {"warnings": warnings})
 
     entry = db.NewAuditEntry(request.report_id, question_id, request.action, [edit.model_dump() for edit in request.edits],
-                             request.reply, request.note, request.reviewer.strip())
+                             request.reply, request.note, reviewer)
     return db.insert_audit_entries([entry])[0]
 
 
 @app.post("/api/actions/bulk")
-def save_bulk_action(request: BulkActionRequest) -> list[dict]:
-    """Approve or undo many reports at once, for example "keep all auto-fixes". Edits are never bulk: each needs its own check."""
-    unknown = [report_id for report_id in request.report_ids if report_id not in QUESTION_ID_BY_REPORT]
-    if unknown:
-        raise HTTPException(404, f"Unknown reports: {', '.join(unknown)}.")
-    if not request.reviewer.strip():
-        raise HTTPException(422, "Add your name before you act on a case, so the audit log shows who did it.")
-    entries = [db.NewAuditEntry(report_id, QUESTION_ID_BY_REPORT[report_id], request.action, [], "", "", request.reviewer.strip())
-               for report_id in dict.fromkeys(request.report_ids)]
+def approve_many(request: BulkApproveRequest) -> list[dict]:
+    """Approve many reports at once, for example "keep all auto-fixes". Reports that already have a decision are skipped.
+    Edits are never bulk: each needs its own format check."""
+    require_known_reports(request.report_ids)
+    reviewer = require_reviewer(request.reviewer)
+    decided = current_decisions()
+    entries = [db.NewAuditEntry(report_id, QUESTION_ID_BY_REPORT[report_id], "approve", [], "", "", reviewer)
+               for report_id in dict.fromkeys(request.report_ids) if report_id not in decided]
+    return db.insert_audit_entries(entries)
+
+
+@app.post("/api/actions/undo")
+def undo_decisions(request: UndoRequest) -> list[dict]:
+    """Undo decisions by their audit entry id. A decision that was already undone or replaced is left alone,
+    so an old "Undo" button can never cancel a newer decision."""
+    reviewer = require_reviewer(request.reviewer)
+    standing = {entry["id"]: entry for entry in current_decisions().values()}
+    targets = [standing[entry_id] for entry_id in dict.fromkeys(request.entry_ids) if entry_id in standing]
+    if not targets:
+        raise HTTPException(409, "Nothing to undo: these decisions were already undone or changed.")
+    entries = [db.NewAuditEntry(entry["report_id"], entry["question_id"], "undo", [], "", f"Undoes entry {entry['id']}.", reviewer)
+               for entry in targets]
     return db.insert_audit_entries(entries)
 
 
