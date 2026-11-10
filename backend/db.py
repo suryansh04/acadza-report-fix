@@ -1,7 +1,9 @@
 import json
 import os
 import sqlite3
-from contextlib import closing
+from collections.abc import Iterator
+from contextlib import closing, contextmanager
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,6 +12,17 @@ from psycopg.rows import dict_row
 
 LOCAL_DATABASE = Path(__file__).resolve().parent / "audit.sqlite3"
 COLUMNS = ("id", "report_id", "question_id", "action", "edits", "reply", "note", "reviewer", "created_at")
+
+
+@dataclass
+class NewAuditEntry:
+    report_id: str
+    question_id: str
+    action: str
+    edits: list[dict]
+    reply: str
+    note: str
+    reviewer: str
 
 
 def database_url() -> str | None:
@@ -52,15 +65,32 @@ def row_to_entry(row: dict | sqlite3.Row) -> dict:
     return entry
 
 
-def insert_audit_entry(report_id: str, question_id: str, action: str, edits: list[dict], reply: str, note: str, reviewer: str) -> dict:
+@contextmanager
+def transaction(connection: psycopg.Connection | sqlite3.Connection) -> Iterator[None]:
+    if isinstance(connection, psycopg.Connection):
+        with connection.transaction():
+            yield
+        return
+    connection.execute("BEGIN")
+    try:
+        yield
+    except BaseException:
+        connection.execute("ROLLBACK")
+        raise
+    connection.execute("COMMIT")
+
+
+def insert_audit_entries(entries: list[NewAuditEntry]) -> list[dict]:
+    """Saves all entries in one transaction: a bulk action is saved in full or not at all."""
     created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    values = (report_id, question_id, action, json.dumps(edits, ensure_ascii=False), reply, note, reviewer, created_at)
-    marks = ", ".join([placeholder()] * len(values))
-    with closing(connect()) as connection:
-        row = connection.execute(
-            f"INSERT INTO audit_log (report_id, question_id, action, edits, reply, note, reviewer, created_at) "
-            f"VALUES ({marks}) RETURNING {', '.join(COLUMNS)}", values).fetchone()
-    return row_to_entry(row)
+    marks = ", ".join([placeholder()] * 8)
+    query = (f"INSERT INTO audit_log (report_id, question_id, action, edits, reply, note, reviewer, created_at) "
+             f"VALUES ({marks}) RETURNING {', '.join(COLUMNS)}")
+    with closing(connect()) as connection, transaction(connection):
+        rows = [connection.execute(query, (entry.report_id, entry.question_id, entry.action, json.dumps(entry.edits, ensure_ascii=False),
+                                           entry.reply, entry.note, entry.reviewer, created_at)).fetchone()
+                for entry in entries]
+    return [row_to_entry(row) for row in rows]
 
 
 def list_audit_entries() -> list[dict]:

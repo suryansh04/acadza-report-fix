@@ -9,7 +9,7 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 # The backend reuses the engine's checks and guards, which import each other by plain module name.
@@ -34,6 +34,12 @@ class ActionRequest(BaseModel):
     note: str = ""
     reviewer: str
     save_anyway: bool = False
+
+
+class BulkActionRequest(BaseModel):
+    report_ids: list[str] = Field(min_length=1)
+    action: Literal["approve", "undo"]
+    reviewer: str
 
 
 @asynccontextmanager
@@ -115,8 +121,22 @@ def save_action(request: ActionRequest) -> dict:
         if warnings:
             raise HTTPException(409, {"warnings": warnings})
 
-    return db.insert_audit_entry(request.report_id, question_id, request.action, [edit.model_dump() for edit in request.edits],
-                                 request.reply, request.note, request.reviewer.strip())
+    entry = db.NewAuditEntry(request.report_id, question_id, request.action, [edit.model_dump() for edit in request.edits],
+                             request.reply, request.note, request.reviewer.strip())
+    return db.insert_audit_entries([entry])[0]
+
+
+@app.post("/api/actions/bulk")
+def save_bulk_action(request: BulkActionRequest) -> list[dict]:
+    """Approve or undo many reports at once, for example "keep all auto-fixes". Edits are never bulk: each needs its own check."""
+    unknown = [report_id for report_id in request.report_ids if report_id not in QUESTION_ID_BY_REPORT]
+    if unknown:
+        raise HTTPException(404, f"Unknown reports: {', '.join(unknown)}.")
+    if not request.reviewer.strip():
+        raise HTTPException(422, "Add your name before you act on a case, so the audit log shows who did it.")
+    entries = [db.NewAuditEntry(report_id, QUESTION_ID_BY_REPORT[report_id], request.action, [], "", "", request.reviewer.strip())
+               for report_id in dict.fromkeys(request.report_ids)]
+    return db.insert_audit_entries(entries)
 
 
 @app.get("/api/health")
