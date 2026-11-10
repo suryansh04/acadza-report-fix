@@ -100,6 +100,12 @@ export function fetchCases(): Promise<Case[]> {
   return fetch("/api/cases").then((response) => readJson<Case[]>(response))
 }
 
+export type Health = { status: string; database: string }
+
+export function fetchHealth(): Promise<Health> {
+  return fetch("/api/health").then((response) => readJson<Health>(response))
+}
+
 export function fetchAuditLog(): Promise<TeacherAction[]> {
   return fetch("/api/audit").then((response) => readJson<TeacherAction[]>(response))
 }

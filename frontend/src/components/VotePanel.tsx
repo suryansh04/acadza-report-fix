@@ -1,4 +1,7 @@
+import { Scale } from "lucide-react"
+
 import type { Case } from "@/api"
+import { Panel, Pill } from "@/components/Panel"
 import { cn } from "@/lib/utils"
 
 const OUTCOME_TEXT: Record<string, string> = {
@@ -30,25 +33,21 @@ export function VotePanel({ item }: { item: Case }) {
   ]
 
   return (
-    <section className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-2">
-        <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Independent answers</h3>
-        <span className="text-xs text-muted-foreground">{OUTCOME_TEXT[vote.outcome] ?? vote.outcome}</span>
-      </div>
+    <Panel icon={Scale} color="var(--tone-cyan)" title="Independent answers" badge={<Pill>{OUTCOME_TEXT[vote.outcome] ?? vote.outcome}</Pill>}>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {cells.map((cell) => {
           const odd = agreed !== null && cell.value !== "-" && cell.value !== agreed
           return (
             <div
               key={cell.label}
-              className={cn("rounded-lg border px-3 py-2 text-center", odd ? "border-bad/40 bg-bad/[0.06]" : agreed && cell.value === agreed && "border-good/40 bg-good/[0.06]")}
+              className={cn("rounded-xl bg-muted px-3 py-2.5 text-center", odd ? "bg-bad/10" : agreed && cell.value === agreed && "bg-good/10")}
             >
-              <p className="text-[11px] text-muted-foreground">{cell.label}</p>
-              <p className={cn("font-mono text-base font-semibold tabular-nums", odd && "text-bad")}>{cell.value}</p>
+              <p className="text-xs text-muted-foreground">{cell.label}</p>
+              <p className={cn("text-base font-semibold tabular-nums", odd && "text-bad")}>{cell.value}</p>
             </div>
           )
         })}
       </div>
-    </section>
+    </Panel>
   )
 }

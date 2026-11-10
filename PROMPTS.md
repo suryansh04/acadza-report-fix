@@ -277,6 +277,13 @@ Format for each prompt:
 - **Fix:** The tolerance is now the larger of 0.01% and 0.005, which is half of the second decimal place. 3113 matches 3112.99, 0.67 matches 0.6667, and 3113 does not match 3100.
 - **Lesson:** A fix needs its own review. Test the edge cases on both sides of the change, not only the case that started it.
 
+### 5. Its console did not look like the Bionis dashboard
+
+- **Error:** I chose the Watermelon "Bionis" dashboard as the design. The AI built the console from memory of one page view: a default shadcn sidebar, a thin top bar, small cards. Only the colors were close.
+- **How I found it:** I compared the two side by side and sent screenshots of Bionis.
+- **Fix:** The AI downloaded the full Bionis source from the Watermelon registry (`https://ui.watermelon.sh/r/bionis-dashboard.json`, 13 files). It copied the color tokens, the sidebar, the top bar, the card and badge styles and some icons, and then rebuilt each page on them.
+- **Lesson:** Give the AI the source code of a design, not only its name or a screenshot.
+
 <!--
 Format for each case:
 

@@ -1,41 +1,66 @@
-import { ArrowRight, CheckCheck, Inbox, SearchCheck, Wrench } from "lucide-react"
+import { CheckCheck, CircleCheck, Inbox, ListOrdered, OctagonAlert, Scale, SearchCheck, Sparkles, TriangleAlert, Wrench } from "lucide-react"
 
 import type { Case } from "@/api"
-import { Badge } from "@/components/ui/badge"
-import { StatusIndicator } from "@/components/ui/status-indicator"
-import { REPAIR_LABELS, casesInQueue, greetingForNow, reportState, stripHtml } from "@/lib/cases"
+import { TrendUpIcon } from "@/components/icons"
+import { IconChip, Panel, Pill } from "@/components/Panel"
+import { REPAIR_LABELS, VERDICT_LABELS, casesInQueue, greetingForNow, reportState, stripHtml } from "@/lib/cases"
 import type { Page } from "@/lib/navigation"
+import type { IconComponent } from "@/lib/pages"
+import { cn } from "@/lib/utils"
 
-function ProgressRing({ done, total }: { done: number; total: number }) {
-  const radius = 42
+function ScoreRing({ value, label }: { value: number; label: string }) {
+  const radius = 43
   const circumference = 2 * Math.PI * radius
-  const share = total === 0 ? 1 : done / total
   return (
-    <div className="relative size-28 shrink-0" role="img" aria-label={`${done} of ${total} teacher reviews done`}>
+    <div className="relative size-28.5 shrink-0" role="img" aria-label={`${value}% ${label}`}>
       <svg viewBox="0 0 100 100" className="size-full -rotate-90">
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--muted)" strokeWidth="9" />
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--brand)" strokeWidth="9" strokeLinecap="round"
-          strokeDasharray={circumference} strokeDashoffset={circumference * (1 - share)} />
+        <circle cx="50" cy="50" r="47.5" fill="none" stroke="var(--brand)" strokeOpacity="0.05" strokeWidth="5" />
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--brand)" strokeOpacity="0.1" strokeWidth="4" />
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--brand)" strokeWidth="4" strokeLinecap="round"
+          strokeDasharray={circumference} strokeDashoffset={circumference * (1 - value / 100)} className="transition-[stroke-dashoffset] duration-700" />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-semibold tabular-nums">{Math.round(share * 100)}%</span>
-        <span className="text-[11px] text-muted-foreground">reviewed</span>
+        <span className="text-xs leading-[1.4] text-muted-foreground">{label}</span>
+        <span className="text-[1.75rem] leading-[1.4] font-medium tabular-nums">{value}%</span>
       </div>
     </div>
   )
 }
 
-function StatCard({ label, value, hint, icon: Icon, onClick }: { label: string; value: number; hint: string; icon: typeof Inbox; onClick: () => void }) {
+type MetricCardProps = { label: string; value: number; unit: string; icon: IconComponent; color: string; emphasis: string; note: string; good: boolean; onClick: () => void }
+
+function MetricCard({ label, value, unit, icon, color, emphasis, note, good, onClick }: MetricCardProps) {
   return (
-    <button type="button" onClick={onClick} className="group flex flex-col gap-3 rounded-xl border bg-card p-4 text-left transition-colors hover:border-foreground/20">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{label}</span>
-        <Icon className="size-4" />
-      </div>
-      <span className="text-3xl font-semibold tabular-nums">{value}</span>
-      <span className="flex items-center gap-1 text-xs text-muted-foreground">{hint} <ArrowRight className="size-3 opacity-0 transition-opacity group-hover:opacity-100" /></span>
+    <button type="button" onClick={onClick} className="flex min-h-37.5 min-w-0 flex-col justify-between rounded-2xl border p-4 text-left transition-colors hover:border-foreground/15">
+      <span className="flex min-w-0 items-center gap-2">
+        <IconChip icon={icon} color={color} />
+        <span className="truncate text-sm font-medium tracking-tight">{label}</span>
+      </span>
+      <span className="flex flex-col gap-3">
+        <span className="leading-none"><span className="text-[1.75rem] font-medium tabular-nums">{value}</span> {unit}</span>
+        <span className="flex items-center gap-2 text-xs">
+          <TrendUpIcon className={good ? "text-trend" : "rotate-180 text-destructive"} />
+          <span><span className="font-medium">{emphasis}</span> <span className="text-muted-foreground">{note}</span></span>
+        </span>
+      </span>
     </button>
   )
+}
+
+function InsightRow({ icon: Icon, tone, title, text }: { icon: IconComponent; tone: string; title: string; text: string }) {
+  return (
+    <div className="flex flex-1 items-center gap-3 rounded-xl bg-muted px-3 py-2">
+      <Icon className={cn("size-5 shrink-0", tone)} />
+      <div className="flex min-w-0 flex-col gap-1.5">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground">{text}</p>
+      </div>
+    </div>
+  )
+}
+
+function plural(count: number, word: string): string {
+  return `${count} ${word}${count === 1 ? "" : "s"}`
 }
 
 export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; reviewer: string; onNavigate: (page: Page, questionId?: string) => void }) {
@@ -43,63 +68,93 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
   const needsYou = casesInQueue(cases, "needs-you")
   const teacherReports = reports.filter((report) => report.route === "faculty_review")
   const teacherDone = teacherReports.filter((report) => report.teacher_action).length
-  const autoFixed = reports.filter((report) => report.route === "auto_apply")
-  const keysFixed = new Set(cases.filter((item) => item.reports.some((report) => report.route === "auto_apply" && report.repair === "answer_key")).map((item) => item.questionId)).size
-  const unreported = cases.reduce((total, item) => total + item.other_defects.length, 0)
   const openReports = reports.filter((report) => reportState(report) === "needs_you").length
+  const autoFixed = reports.filter((report) => report.route === "auto_apply").length
+  const keysFixed = new Set(reports.filter((report) => report.route === "auto_apply" && report.repair === "answer_key").map((report) => report.question_id)).size
+  const studentWrong = reports.filter((report) => report.verdict === "no_error").length
+  const unreported = cases.reduce((total, item) => total + item.other_defects.length, 0)
+  const progress = teacherReports.length === 0 ? 100 : Math.round((teacherDone / teacherReports.length) * 100)
+  const firstName = reviewer.trim().split(/\s+/)[0]
+
+  const verdictCounts = Object.entries(
+    reports.reduce<Record<string, number>>((counts, report) => ({ ...counts, [report.verdict]: (counts[report.verdict] ?? 0) + 1 }), {}),
+  ).sort((a, b) => b[1] - a[1])
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-8 p-4 md:p-8">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-balance">{greetingForNow()}{reviewer ? `, ${reviewer}` : ""}</h1>
-        <p className="text-muted-foreground">Here is where the question bank stands.</p>
-      </header>
+    <div className="flex flex-col gap-8">
+      <h1 className="min-w-0 truncate text-xl font-medium md:text-2xl">{greetingForNow()}{firstName ? ` ${firstName}` : ""}</h1>
 
-      <section className="flex flex-col items-start gap-6 rounded-2xl border bg-card p-6 sm:flex-row sm:items-center">
-        <ProgressRing done={teacherDone} total={teacherReports.length} />
+      <section className="flex items-center gap-6">
+        <div className="flex min-h-28.5 flex-col justify-between gap-4">
+          <h2 className="text-lg font-medium">Review progress</h2>
+          <div className="flex flex-col gap-2">
+            <Pill tone={openReports > 0 ? "warn" : "good"} className="px-3 text-sm">
+              {openReports > 0 ? `${plural(openReports, "report")} need you` : "All caught up"}
+            </Pill>
+            <p className="max-w-md text-sm leading-[1.4] text-muted-foreground">
+              The engine checked {plural(reports.length, "student report")}.{" "}
+              <span className="font-medium text-foreground">{plural(keysFixed, "wrong answer key")}</span>{" "}
+              {keysFixed === 1 ? "was" : "were"} fixed automatically after three independent answers agreed.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <ScoreRing value={progress} label="Reviewed" />
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3.5">
         <div className="flex flex-col gap-2">
-          <StatusIndicator state={openReports > 0 ? "fixing" : "active"} size="sm" label={openReports > 0 ? `${openReports} report${openReports > 1 ? "s" : ""} need you` : "All caught up"} />
-          <p className="max-w-xl text-pretty">
-            <span className="font-semibold">{keysFixed} wrong answer key{keysFixed === 1 ? " was" : "s were"} fixed automatically</span>
-            {" "}after three independent answers agreed. {autoFixed.length} fixes are live in total, and every one can be undone.
-          </p>
+          <h2 className="text-lg font-medium">Key numbers</h2>
+          <p className="text-sm text-muted-foreground">Questions in each queue. Click a card to open it.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard label="Needs you" value={needsYou.length} unit="questions" icon={Inbox} color="var(--tone-red)"
+            emphasis={String(openReports)} note="reports still open" good={openReports === 0} onClick={() => onNavigate("needs-you")} />
+          <MetricCard label="Auto-fixed" value={casesInQueue(cases, "auto-fixed").length} unit="questions" icon={Wrench} color="var(--tone-green)"
+            emphasis={String(autoFixed)} note="fixes live, each can be undone" good onClick={() => onNavigate("auto-fixed")} />
+          <MetricCard label="No change" value={casesInQueue(cases, "no-change").length} unit="questions" icon={CheckCheck} color="var(--tone-indigo)"
+            emphasis={String(studentWrong)} note="reports where the student was wrong" good onClick={() => onNavigate("no-change")} />
+          <MetricCard label="Unreported" value={unreported} unit="defects" icon={SearchCheck} color="var(--tone-cyan)"
+            emphasis="Found" note="while checking other reports" good={unreported === 0} onClick={() => onNavigate("unreported")} />
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Needs you" value={needsYou.length} hint="questions to review" icon={Inbox} onClick={() => onNavigate("needs-you")} />
-        <StatCard label="Auto-fixed" value={casesInQueue(cases, "auto-fixed").length} hint="questions fixed, check or undo" icon={Wrench} onClick={() => onNavigate("auto-fixed")} />
-        <StatCard label="No change" value={casesInQueue(cases, "no-change").length} hint="questions where the student was wrong" icon={CheckCheck} onClick={() => onNavigate("no-change")} />
-        <StatCard label="Unreported" value={unreported} hint="defects nobody reported" icon={SearchCheck} onClick={() => onNavigate("unreported")} />
-      </section>
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <Panel icon={Sparkles} color="var(--tone-indigo)" title="Engine summary" badge={<Pill tone="plain" className="py-2">This run</Pill>} tinted className="min-h-85.5">
+          <div className="flex flex-1 flex-col gap-2">
+            <InsightRow icon={CircleCheck} tone="text-good" title={`${plural(autoFixed, "fix")} applied`} text="Only safe fixes, and keys that three independent answers agree on." />
+            <InsightRow icon={TriangleAlert} tone="text-warn" title={`${plural(teacherReports.length, "report")} sent to you`} text="Changes to content, and cases where the engine is not sure." />
+            <InsightRow icon={OctagonAlert} tone="text-bad" title={`${plural(unreported, "defect")} nobody reported`} text="Nothing changes until a teacher decides." />
+          </div>
+        </Panel>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between">
-          <h2 className="font-semibold">Do these first</h2>
-          <span className="text-xs text-muted-foreground">Most harm to students first</span>
-        </div>
-        {needsYou.length === 0 ? (
-          <p className="rounded-xl border border-dashed p-6 text-center text-muted-foreground">Nothing is waiting for you.</p>
-        ) : (
-          <ol className="flex flex-col divide-y overflow-hidden rounded-xl border bg-card">
-            {needsYou.slice(0, 5).map((item, position) => {
+        <Panel icon={Scale} color="var(--tone-red)" title="Verdicts" badge={<Pill tone="plain" className="py-2">{plural(reports.length, "report")}</Pill>} tinted className="min-h-85.5">
+          <div className="flex flex-1 flex-col justify-between rounded-xl bg-background p-3">
+            {verdictCounts.map(([verdict, count]) => (
+              <div key={verdict} className="flex items-center justify-between gap-3 py-1.5">
+                <p className="text-muted-foreground">{VERDICT_LABELS[verdict] ?? verdict}</p>
+                <p className={cn("shrink-0 font-semibold tabular-nums", verdict === "defect" && "text-warn", verdict === "no_error" && "text-good")}>{count}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel icon={ListOrdered} color="var(--tone-teal)" title="Do these first" tinted className="min-h-85.5">
+          <div className="flex flex-1 flex-col gap-2">
+            {needsYou.length === 0 && <p className="rounded-xl bg-muted p-4 text-sm text-muted-foreground">Nothing is waiting for you.</p>}
+            {needsYou.slice(0, 4).map((item) => {
               const repair = item.reports.find((report) => reportState(report) === "needs_you")?.repair
               return (
-                <li key={item.questionId}>
-                  <button type="button" onClick={() => onNavigate("needs-you", item.questionId)} className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-muted/60">
-                    <span className="w-5 font-mono text-sm text-muted-foreground tabular-nums">{position + 1}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="line-clamp-1 text-sm">{stripHtml(item.before.question_html)}</span>
-                      <span className="text-xs text-muted-foreground">{item.subject} · {item.chapter} · {item.reports.length} report{item.reports.length > 1 ? "s" : ""}</span>
-                    </span>
-                    {repair && <Badge variant="outline">{REPAIR_LABELS[repair] ?? repair}</Badge>}
-                    <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
-                  </button>
-                </li>
+                <button key={item.questionId} type="button" onClick={() => onNavigate("needs-you", item.questionId)}
+                  className="flex flex-col gap-1.5 rounded-xl bg-muted px-3 py-2 text-left transition-colors hover:bg-accent">
+                  <p className="text-sm font-medium">{repair ? REPAIR_LABELS[repair] ?? repair : "Check"} · {item.subject}</p>
+                  <p className="line-clamp-1 text-xs text-muted-foreground/80">{stripHtml(item.before.question_html)}</p>
+                </button>
               )
             })}
-          </ol>
-        )}
+          </div>
+        </Panel>
       </section>
     </div>
   )

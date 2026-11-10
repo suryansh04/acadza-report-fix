@@ -54,6 +54,11 @@ export function caseIsInQueue(item: Case, queue: QueueName): boolean {
   return item.reports.every((report) => report.route === "no_change")
 }
 
+export function queueForCase(item: Case): QueueName {
+  if (caseIsInQueue(item, "needs-you")) return "needs-you"
+  return item.reports.some((report) => report.route === "auto_apply") ? "auto-fixed" : "no-change"
+}
+
 export function casesInQueue(cases: Case[], queue: QueueName): Case[] {
   return cases.filter((item) => caseIsInQueue(item, queue)).sort((a, b) => b.urgency - a.urgency)
 }

@@ -12,14 +12,14 @@ export function MathHtml({ html, className }: { html: string; className?: string
 function SideBySide({ label, before, after }: { label: string; before: string; after: string }) {
   return (
     <section className="flex flex-col gap-2">
-      <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</h3>
+      <h4 className="text-sm font-medium text-muted-foreground">{label}</h4>
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="min-w-0 rounded-lg border border-bad/30 bg-bad/[0.03] p-3">
-          <p className="mb-1.5 text-[11px] font-semibold tracking-wide text-bad uppercase">Before</p>
+        <div className="min-w-0 rounded-xl bg-muted p-3 ring-1 ring-bad/20">
+          <p className="mb-1.5 text-xs font-medium text-bad">Before</p>
           <MathHtml html={before} />
         </div>
-        <div className="min-w-0 rounded-lg border border-good/30 bg-good/[0.04] p-3">
-          <p className="mb-1.5 text-[11px] font-semibold tracking-wide text-good uppercase">After</p>
+        <div className="min-w-0 rounded-xl bg-muted p-3 ring-1 ring-good/25">
+          <p className="mb-1.5 text-xs font-medium text-good">After</p>
           <MathHtml html={after} />
         </div>
       </div>
@@ -27,13 +27,13 @@ function SideBySide({ label, before, after }: { label: string; before: string; a
   )
 }
 
-function KeyChange({ before, after }: { before: string; after: string }) {
+function KeyChange({ label, before, after }: { label: string; before: string; after: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3">
-      <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Answer key</span>
-      <span className="rounded-md bg-bad/10 px-2.5 py-1 font-mono text-sm text-bad line-through">{before}</span>
+    <div className="flex flex-wrap items-center gap-3 rounded-xl bg-muted px-3 py-2.5">
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <span className="rounded-lg bg-bad/10 px-2.5 py-1 font-mono text-sm text-bad line-through">{before}</span>
       <ArrowRight className="size-4 text-muted-foreground" />
-      <span className="rounded-md bg-good/15 px-2.5 py-1 font-mono text-sm font-semibold text-good">{after}</span>
+      <span className="rounded-lg bg-good/15 px-2.5 py-1 font-mono text-sm font-semibold text-good">{after}</span>
     </div>
   )
 }
@@ -53,17 +53,14 @@ export function ChangePreview({ item, edits }: { item: Case; edits: Edit[] }) {
           after={buildDiffHtml(item.before.question_html, edits, "question", "after")}
         />
       ) : (
-        <section className="flex flex-col gap-2">
-          <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Question</h3>
-          <MathHtml html={item.before.question_html} className="rounded-lg border p-3" />
-        </section>
+        <MathHtml html={item.before.question_html} className="rounded-xl bg-muted p-4" />
       )}
 
-      {keyEdit && <KeyChange before={formatAnswer(item.before.answer)} after={keyEdit.replace} />}
-      {typeEdit && <KeyChange before={typeEdit.find} after={typeEdit.replace} />}
+      {keyEdit && <KeyChange label="Answer key" before={formatAnswer(item.before.answer)} after={keyEdit.replace} />}
+      {typeEdit && <KeyChange label="Question type" before={typeEdit.find} after={typeEdit.replace} />}
       {!keyEdit && (
-        <p className="text-sm text-muted-foreground">
-          Answer key: <span className="font-mono font-semibold text-foreground">{formatAnswer(item.before.answer)}</span>
+        <p className="flex items-center gap-3 rounded-xl bg-muted px-3 py-2.5 text-sm font-medium text-muted-foreground">
+          Answer key <span className="font-mono font-semibold text-foreground">{formatAnswer(item.before.answer)}</span>
         </p>
       )}
 
@@ -74,9 +71,9 @@ export function ChangePreview({ item, edits }: { item: Case; edits: Edit[] }) {
           after={buildDiffHtml(item.before.solution_html, edits, "solution", "after")}
         />
       ) : (
-        <details className="group rounded-lg border">
-          <summary className="cursor-pointer px-3 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">Stored solution</summary>
-          <MathHtml html={item.before.solution_html} className="border-t p-3" />
+        <details className="rounded-xl bg-muted">
+          <summary className="cursor-pointer px-3 py-2.5 text-sm font-medium text-muted-foreground">Stored solution</summary>
+          <MathHtml html={item.before.solution_html} className="border-t px-4 py-3" />
         </details>
       )}
     </div>

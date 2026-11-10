@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"
 
 export type Page = "home" | "needs-you" | "auto-fixed" | "no-change" | "unreported" | "audit"
 
 const PAGES: Page[] = ["home", "needs-you", "auto-fixed", "no-change", "unreported", "audit"]
 const REVIEWER_KEY = "report-fix-reviewer"
+const SHORTCUTS = "J / K: next or previous question · A: approve · E: edit · R: reject · Ctrl K: search"
 
 export type Location = { page: Page; questionId: string | null }
 
@@ -48,4 +50,8 @@ export function useReviewerName(): [string, (name: string) => void] {
   }, [])
 
   return [name, saveName]
+}
+
+export function showShortcuts(): void {
+  toast(SHORTCUTS)
 }

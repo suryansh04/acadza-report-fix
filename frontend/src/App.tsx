@@ -1,30 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react"
 import { ThemeProvider } from "next-themes"
 import { toast } from "sonner"
 
-import { type Case, fetchCases, saveAction } from "@/api"
+import { type Case, fetchCases, fetchHealth, saveAction } from "@/api"
 import { AppSidebar } from "@/components/AppSidebar"
 import type { SubmitAction } from "@/components/ReportCard"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { Topbar } from "@/components/Topbar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { casesInQueue } from "@/lib/cases"
-import { type Page, useLocation, useReviewerName } from "@/lib/navigation"
+import { casesInQueue, reportState } from "@/lib/cases"
+import { type Page, showShortcuts, useLocation, useReviewerName } from "@/lib/navigation"
 import { AuditLogPage } from "@/pages/AuditLogPage"
 import { HomePage } from "@/pages/HomePage"
 import { ReviewPage } from "@/pages/ReviewPage"
 import { UnreportedPage } from "@/pages/UnreportedPage"
 
-const PAGE_TITLES: Record<Page, string> = {
-  home: "Home",
-  "needs-you": "Needs you",
-  "auto-fixed": "Auto-fixed",
-  "no-change": "No change",
-  unreported: "Unreported",
-  audit: "Audit log",
-}
-
-const SHORTCUTS = "J / K: next or previous question · A: approve · E: edit · R: reject"
+const SIDEBAR_SIZE = { "--sidebar-width": "18.125rem", "--sidebar-width-icon": "4.25rem" } as CSSProperties
+const REVIEW_PAGES: Page[] = ["needs-you", "auto-fixed", "no-change"]
 
 function Console() {
   const [location, navigate] = useLocation()
@@ -32,6 +25,7 @@ function Console() {
   const [cases, setCases] = useState<Case[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [auditVersion, setAuditVersion] = useState(0)
+  const [database, setDatabase] = useState<string | null>("")
 
   const loadCases = useCallback(() => {
     fetchCases().then((data) => { setCases(data); setLoadError(null) }).catch((error: Error) => setLoadError(error.message))
@@ -40,8 +34,12 @@ function Console() {
   useEffect(loadCases, [loadCases])
 
   useEffect(() => {
+    fetchHealth().then((health) => setDatabase(health.database)).catch(() => setDatabase(null))
+  }, [])
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "?" && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) toast(SHORTCUTS)
+      if (event.key === "?" && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) showShortcuts()
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
@@ -49,7 +47,7 @@ function Console() {
 
   const submit: SubmitAction = useCallback(async (report, action, extra) => {
     if (!reviewer.trim()) {
-      toast.error("Add your name in the sidebar first, so the audit log shows who acted.")
+      toast.error("Add your name in the Reviewer card in the sidebar first, so the audit log shows who acted.")
       return null
     }
     try {
@@ -76,11 +74,12 @@ function Console() {
     "no-change": cases ? casesInQueue(cases, "no-change").length : 0,
     unreported: cases ? cases.reduce((total, item) => total + item.other_defects.length, 0) : 0,
   }), [cases])
+  const openReports = cases ? cases.flatMap((item) => item.reports).filter((report) => reportState(report) === "needs_you").length : 0
 
   const { page, questionId } = location
   const renderPage = () => {
-    if (loadError) return <p className="m-6 rounded-lg border border-bad/40 bg-bad/10 p-4 text-sm text-bad">Could not load the cases: {loadError}. Check that the backend is running.</p>
-    if (!cases) return <p className="m-6 text-muted-foreground">Loading cases…</p>
+    if (loadError) return <p className="rounded-xl bg-bad/10 p-4 text-sm text-bad">Could not load the cases: {loadError}. Check that the backend is running.</p>
+    if (!cases) return <p className="text-muted-foreground">Loading cases…</p>
     if (page === "home") return <HomePage cases={cases} reviewer={reviewer} onNavigate={(target, id) => navigate(target, id)} />
     if (page === "unreported") return <UnreportedPage cases={cases} />
     if (page === "audit") return <AuditLogPage refreshKey={auditVersion} />
@@ -88,15 +87,16 @@ function Console() {
   }
 
   return (
-    <SidebarProvider className="h-svh">
+    <SidebarProvider defaultOpen className="h-svh overflow-hidden" style={SIDEBAR_SIZE}>
       <AppSidebar page={page} counts={counts} reviewer={reviewer} onReviewerChange={setReviewer} onNavigate={(target) => navigate(target)} />
-      <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
-          <SidebarTrigger />
-          <h1 className="text-sm font-medium">{PAGE_TITLES[page]}</h1>
-        </header>
-        <main className="min-h-0 flex-1 overflow-y-auto">{renderPage()}</main>
-      </SidebarInset>
+      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Topbar page={page} cases={cases ?? []} openReports={openReports} reviewer={reviewer} database={database} onNavigate={navigate} />
+        {REVIEW_PAGES.includes(page) && cases ? (
+          <div className="min-h-0 flex-1">{renderPage()}</div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10">{renderPage()}</div>
+        )}
+      </main>
       <Toaster position="bottom-right" />
     </SidebarProvider>
   )
