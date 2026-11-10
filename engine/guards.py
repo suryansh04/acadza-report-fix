@@ -214,8 +214,10 @@ def decide_route(question: Question, judgment: ReportJudgment, vote: Vote, findi
     if problems:
         return build_teacher_decision(judgment, vote, "Check failed: " + "; ".join(problems) + ".")
 
-    confidence = 0.95 if repair in LOW_RISK_REPAIRS else vote.confidence
-    return Decision(judgment.report_id, "auto_apply", f"All checks pass. {vote.explanation}", confidence, judgment.reply_final, judgment.edits)
+    if repair in LOW_RISK_REPAIRS:
+        return Decision(judgment.report_id, "auto_apply", "All checks pass. The fix changes only words or layout, never a number, formula or key.",
+                        0.95, judgment.reply_final, judgment.edits)
+    return Decision(judgment.report_id, "auto_apply", f"All checks pass. {vote.explanation}", vote.confidence, judgment.reply_final, judgment.edits)
 
 
 def edit_signature(edits: list[Edit]) -> tuple:

@@ -222,6 +222,10 @@ List any real defect in this question that no report covers, with the repair and
 
    The score stayed at 44/44, and 11 of 11 bad AI answers still went to a teacher.
 
+8. **Prompt:** "Test the pipeline again, thoroughly, against rough and harder test cases. Check its accuracy and efficiency, and fix any issue with the best possible solution."
+   **Why:** The 44 given reports are the only test so far. A system for lakhs of students must handle inputs it has never seen.
+   **Result:** The AI wrote 21 harder cases. They found 6 problems that the score on the original data hid. All 6 are fixed. Two independent runs of the hard set both score 21/21. The AI also read every edit and reply, not only the score.
+
 <!--
 Format for each prompt:
 
@@ -492,3 +496,30 @@ Format for each decision:
   - a teacher-only repair with an edit
   - a missing value that the solution never states
   - an "add a unit" fix that removes text
+
+### 17. A second test set with harder cases
+
+- **Problem:** A perfect score on the 44 given reports does not prove that the engine works on new inputs.
+- **Decision:** I wrote 21 harder reports on 20 new questions (`engine/hard_cases/`), each with an expected verdict, repair and route. Where two answers are defensible, the expected file accepts both. The cases cover:
+  - prompt injection in Hinglish
+  - a comment that tries to break out of its tags
+  - two different defects on one question
+  - an option cut off in the stored data
+  - a wrong multi-answer key
+  - a key in the wrong unit
+  - a solution from a different question
+  - two correct options in a single-answer question
+  - false "wrong chapter" and "out of syllabus" claims
+  - an edit after the report that fixed a different issue
+  - an empty comment
+  - a missing rounding rule
+  - a stem value that differs from the solution
+- **What it found:**
+  - **Code checks:**
+    - A short but complete solution was called "missing".
+    - "Q.12" was not caught.
+    - "Space for rough work" at the end was not caught, because the parser puts it in the last option.
+  - **Vote:** Two solvers who both said "A, C" on a single-answer question were read as disagreeing. This cost an extra tiebreak call and gave a wrong confidence.
+  - **Reason text:** A spelling fix showed a reason about the answer key.
+  - **Cache:** A new cache folder crashed, because the parent folders were not created.
+- **Result:** All six problems are fixed. The hard set scores 21/21 on verdict, repair and route, with 0 unsafe auto-fixes, in two independent runs. The original set still scores 44/44. A fresh hard run costs about $0.51 and takes about 45 seconds.

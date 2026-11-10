@@ -1780,7 +1780,7 @@
           }
         ],
         "route": "auto_apply",
-        "route_reason": "All checks pass. Key, solution and solvers all give C.",
+        "route_reason": "All checks pass. The fix changes only words or layout, never a number, formula or key.",
         "confidence": 0.95,
         "reply": "You are right, thank you for reporting this. The raw \\frac code in the question has been fixed, and it now reads 7/8.",
         "reply_final": "You are right, thank you for reporting this. The raw \\frac code in the question has been fixed, and it now reads 7/8.",
@@ -1860,7 +1860,7 @@
           }
         ],
         "route": "auto_apply",
-        "route_reason": "All checks pass. Key, solution and solvers all give B.",
+        "route_reason": "All checks pass. The fix changes only words or layout, never a number, formula or key.",
         "confidence": 0.95,
         "reply": "You're right, thank you! Option D was misspelt as 'plexux' and it now reads 'Choroid plexus'. The answer stays (B) Peyer's patches.",
         "reply_final": "You're right, thank you! Option D was misspelt as 'plexux' and it now reads 'Choroid plexus'. The answer stays (B) Peyer's patches.",
@@ -1957,7 +1957,7 @@
           }
         ],
         "route": "auto_apply",
-        "route_reason": "All checks pass. Key, solution and solvers all give A.",
+        "route_reason": "All checks pass. The fix changes only words or layout, never a number, formula or key.",
         "confidence": 0.95,
         "reply": "You're right, thank you! Option A was misspelled, and we've corrected it to 'Epithelial tissue'. The answer is still A.",
         "reply_final": "You're right, thank you! Option A was misspelled, and we've corrected it to 'Epithelial tissue'. The answer is still A.",
@@ -2037,7 +2037,7 @@
           }
         ],
         "route": "auto_apply",
-        "route_reason": "All checks pass. Key, solution and solvers all give C.",
+        "route_reason": "All checks pass. The fix changes only words or layout, never a number, formula or key.",
         "confidence": 0.95,
         "reply": "Thanks for flagging this. The answer, Golden rice (C), is correct because it makes beta-carotene, which the body turns into vitamin A, and this prevents night blindness. We found a spelling mistake in option B ('Canolla') and have corrected it.",
         "reply_final": "Thanks for flagging this. The answer, Golden rice (C), is correct because it makes beta-carotene, which the body turns into vitamin A, and this prevents night blindness. We found a spelling mistake in option B ('Canolla') and have corrected it.",
@@ -2124,7 +2124,7 @@
           }
         ],
         "route": "auto_apply",
-        "route_reason": "All checks pass. Key, solution and solvers all give D.",
+        "route_reason": "All checks pass. The fix changes only words or layout, never a number, formula or key.",
         "confidence": 0.95,
         "reply": "You are right, the exam tag did not belong in the question text. Thank you for pointing it out, we have removed it.",
         "reply_final": "You are right, the exam tag did not belong in the question text. Thank you for pointing it out, we have removed it.",

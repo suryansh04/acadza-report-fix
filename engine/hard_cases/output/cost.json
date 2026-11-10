@@ -1,0 +1,30 @@
+{
+  "total_calls": 60,
+  "calls_served_from_cache": 59,
+  "full_run_cost_usd": 0.5021,
+  "this_run_cost_usd": 0.0139,
+  "by_step": {
+    "solver": {
+      "calls": 40,
+      "input_tokens": 36874,
+      "output_tokens": 5528,
+      "cost_usd": 0.1949
+    },
+    "judge": {
+      "calls": 20,
+      "input_tokens": 112405,
+      "output_tokens": 8242,
+      "cost_usd": 0.3072
+    }
+  },
+  "by_model": {
+    "claude-sonnet-5-5": {
+      "calls": 40,
+      "cost_usd": 0.3704
+    },
+    "claude-opus-5-5": {
+      "calls": 20,
+      "cost_usd": 0.1317
+    }
+  }
+}

@@ -158,7 +158,7 @@ def call_claude[T: BaseModel](step: str, model: str, system_prompt: str, user_me
         cost_usd=calculate_cost_usd(model, response.usage.input_tokens, response.usage.output_tokens),
     )
 
-    CACHE_DIR.mkdir(exist_ok=True)
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
     usage_to_store = {key: value for key, value in asdict(usage).items() if key != "from_cache"}
     cache_path.write_text(
         json.dumps({"request": request, "result": result.model_dump(mode="json"), "usage": usage_to_store}, indent=2, ensure_ascii=False),

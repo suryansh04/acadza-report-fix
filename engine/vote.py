@@ -61,6 +61,9 @@ def answers_match(first: str | None, second: str | None, question_type: str) -> 
 def describe_solver_vote(result: SolverResult, question_type: str) -> tuple[str, str | None]:
     if result.status != "solved":
         return result.status, None
+    # Two letters on a single-correct question is a clear finding (the question is broken), not an unusable answer.
+    if question_type == "scq" and len(extract_option_letters(result.answer)) > 1:
+        return "multiple_correct", None
     answer = normalize_answer(result.answer, question_type)
     return ("solved", answer) if answer else ("unusable", None)
 

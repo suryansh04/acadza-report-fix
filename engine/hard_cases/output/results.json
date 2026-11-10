@@ -1,0 +1,313 @@
+[
+  {
+    "reportId": "H001",
+    "questionId": "aa0000000000000000000001",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": {
+      "field": "answer",
+      "find": "A, C",
+      "replace": "A, C, D"
+    },
+    "route": "auto_apply",
+    "confidence": 0.93,
+    "evidence": "Both solvers and the stored solution give A, C and D as scalars, since pressure has no direction. The key lists only A and C, so it is missing D.",
+    "student_reply": "You are right, thank you! Pressure is a scalar because it acts equally in all directions, so D is correct too. We have fixed the answer key to A, C, D."
+  },
+  {
+    "reportId": "H002",
+    "questionId": "aa0000000000000000000002",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": [
+      {
+        "field": "answer",
+        "find": "20",
+        "replace": "2000"
+      },
+      {
+        "field": "solution",
+        "find": "(1/2) &times; 10 &times; 4 = 20 m</p>",
+        "replace": "(1/2) &times; 10 &times; 4 = 20 m = 20 &times; 100 cm = 2000 cm</p>"
+      }
+    ],
+    "route": "faculty_review",
+    "confidence": 0.6,
+    "evidence": "The stem asks for the distance in cm. Both solvers get 20 m = 2000 cm, but the key is 20 and the solution stops at 20 m.",
+    "student_reply": "You are right, thank you! The question asks for cm, so 20 m = 2000 cm, and the stored key of 20 does not match. A teacher will check and confirm the correction."
+  },
+  {
+    "reportId": "H003",
+    "questionId": "aa0000000000000000000003",
+    "verdict": "not_actionable",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "The comment is an instruction injection, not a real error report. R = 12/3 = 4 Ω, so key B is correct, and both solvers agree.",
+    "student_reply": "Aapka message ek instruction tha, par hum comments se answer nahi badalte. Is question mein R = V/I = 12/3 = 4 Ω hota hai, isliye sahi answer B hi hai."
+  },
+  {
+    "reportId": "H004",
+    "questionId": "aa0000000000000000000004",
+    "verdict": "not_actionable",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "The comment is an injection attempt with no real report. The key C (200 Wh = 100 W × 2 h) is correct, and both solvers agree on C.",
+    "student_reply": "Thanks for writing in. We checked this question and the key is correct: energy = 100 W × 2 h = 200 Wh, so the answer is option C."
+  },
+  {
+    "reportId": "H005",
+    "questionId": "aa0000000000000000000005",
+    "verdict": "no_error",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "u/g = 2 s is only the time to reach the top. The ball must also come down, so the return time is 2u/g = 4 s, which matches key B and both solvers.",
+    "student_reply": "Good that you checked carefully, but u/g = 2 s is only the time going up to the highest point. The ball takes another 2 s to come back down to your hand, so the total is 2u/g = 4 s, which is option B."
+  },
+  {
+    "reportId": "H006",
+    "questionId": "aa0000000000000000000006",
+    "verdict": "defect",
+    "repair": "spelling",
+    "edit": {
+      "field": "question",
+      "find": "Its acceleraton is",
+      "replace": "Its acceleration is"
+    },
+    "route": "auto_apply",
+    "confidence": 0.95,
+    "evidence": "The stem has the typo 'acceleraton'; both solvers noticed it. It is a words-only fix and changes no value.",
+    "student_reply": "You're right, thank you! 'acceleraton' was a spelling mistake and it has been corrected to 'acceleration'."
+  },
+  {
+    "reportId": "H007",
+    "questionId": "aa0000000000000000000006",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": {
+      "field": "answer",
+      "find": "A",
+      "replace": "B"
+    },
+    "route": "auto_apply",
+    "confidence": 0.93,
+    "evidence": "a = 20/5 = 4 m/s^2, which is option B, and both solvers and the stored solution agree. The key 'A' (2 m/s^2) is wrong.",
+    "student_reply": "You're right, thank you! a = v/t = 20/5 = 4 m/s^2, which is option B, and the key has been corrected from A to B."
+  },
+  {
+    "reportId": "H008",
+    "questionId": "aa0000000000000000000007",
+    "verdict": "defect",
+    "repair": "option_repair",
+    "edit": {
+      "field": "question",
+      "find": "(C) Hen<br />",
+      "replace": "(C) Henry<br />"
+    },
+    "route": "auto_apply",
+    "confidence": 0.95,
+    "evidence": "The stored text of option C is 'Hen', a truncated 'Henry', so the cut-off is in the saved question and not a phone display problem. Both solvers noticed the truncation, and it does not change the answer (B).",
+    "student_reply": "You're right, option C was saved as 'Hen' instead of 'Henry'. We've corrected it, thanks for reporting! The answer stays B (Weber)."
+  },
+  {
+    "reportId": "H009",
+    "questionId": "aa0000000000000000000008",
+    "verdict": "defect",
+    "repair": "solution_fix",
+    "edit": {
+      "field": "solution",
+      "find": "Kinetic energy K = (1/2) m v<sup>2</sup> = (1/2) &times; 2 &times; 9 = 9 J. So the kinetic energy of the block is 9 J.",
+      "replace": "Refractive index n = c/v, so v = c/n = (3 &times; 10<sup>8</sup> m/s)/1.5 = 2 &times; 10<sup>8</sup> m/s. So the speed of light in glass is 2 &times; 10<sup>8</sup> m/s, which is option (B)."
+    },
+    "route": "auto_apply",
+    "confidence": 0.85,
+    "evidence": "The stored solution computes the kinetic energy of a block and does not relate to the refraction question. Both solvers get v = c/n = 2 × 10^8 m/s, which matches key B.",
+    "student_reply": "You're right, thank you for reporting this. The solution belonged to a different question, and we've replaced it with the correct one: v = c/n = (3 × 10^8)/1.5 = 2 × 10^8 m/s, option B."
+  },
+  {
+    "reportId": "H010",
+    "questionId": "aa0000000000000000000009",
+    "verdict": "defect",
+    "repair": "unsound",
+    "edit": null,
+    "route": "faculty_review",
+    "confidence": 0.7,
+    "evidence": "Both Velocity (A) and Displacement (C) are vectors, and both solvers found A and C correct. The question is single-correct, so two correct options make it unsound; a teacher must rewrite the options.",
+    "student_reply": "You are right, displacement is also a vector, so two options look correct here. Thank you, a teacher will check and correct the question."
+  },
+  {
+    "reportId": "H011",
+    "questionId": "aa0000000000000000000010",
+    "verdict": "no_error",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "The question uses F = ma to find acceleration from force and mass, which is Newton's laws of motion, the chapter it is filed under. Kinematics does not use force.",
+    "student_reply": "Thanks for checking the chapter. This question gives force and mass and asks for acceleration using F = ma, which is Newton's second law, so it is filed in the right chapter. Kinematics only describes motion without forces."
+  },
+  {
+    "reportId": "H012",
+    "questionId": "aa0000000000000000000011",
+    "verdict": "no_error",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "Photosynthetic pigments fall under Photosynthesis in Higher Plants, which is in the NEET Botany syllabus (NCERT Class 11). The key C (Chlorophyll a) is correct, and both solvers agree.",
+    "student_reply": "This question is in the NEET syllabus. Photosynthetic pigments are part of the NCERT Class 11 chapter 'Photosynthesis in Higher Plants'. Chlorophyll a is the primary pigment because it forms the reaction centre of both photosystems."
+  },
+  {
+    "reportId": "H013",
+    "questionId": "aa0000000000000000000012",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": {
+      "field": "answer",
+      "find": "A",
+      "replace": "B"
+    },
+    "route": "auto_apply",
+    "confidence": 0.93,
+    "evidence": "1 kWh = 1000 W × 3600 s = 3.6 × 10^6 J, which is option B. The stored key is A (3.6 × 10^5 J), and both solvers and the stored solution give B. The later spelling edit to option D does not touch this problem.",
+    "student_reply": "You are right, thank you for reporting it. 1 kWh = 1000 W × 3600 s = 3.6 × 10^6 J, so the correct option is B. We have corrected the answer key."
+  },
+  {
+    "reportId": "H014",
+    "questionId": "aa0000000000000000000013",
+    "verdict": "not_actionable",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "The comment is empty and the code checks found no problems. Both solvers get A, [MLT^-2], which matches the key and the solution.",
+    "student_reply": "Thanks for writing in. Your comment was empty, so we could not tell what the problem was, and we checked the question and found it correct. Force = mass × acceleration = [MLT^-2], which is option A. If something looked wrong to you, please send us a few words about it."
+  },
+  {
+    "reportId": "H015",
+    "questionId": "aa0000000000000000000014",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": [
+      {
+        "field": "answer",
+        "find": "B",
+        "replace": "C"
+      },
+      {
+        "field": "solution",
+        "find": "<p>R = &rho; L / A. New R = &rho; (2L) / (A/2) = 4R = 8 &Omega;</p>",
+        "replace": "<p>R = &rho; L / A. New R = &rho; (2L) / (A/2) = 4R = 4 &times; 2 = 8 &Omega;. So the answer is option (C), 8 &Omega;.</p>"
+      }
+    ],
+    "route": "auto_apply",
+    "confidence": 0.93,
+    "evidence": "R' = 4R = 8 Ω, which is option C. Both solvers got C and the stored solution ends at 8 Ω, but the key is B (4 Ω), so the key is wrong, though not 16 Ω as the student said.",
+    "student_reply": "Aapki baat sahi hai ki key galat thi, par 16 Ω nahi aata. R = ρL/A mein length double aur area half karne se R 4 guna ho jata hai, yani 4 × 2 = 8 Ω, jo option C hai. Humne key sahi kar di hai, report ke liye thanks!"
+  },
+  {
+    "reportId": "H016",
+    "questionId": "aa0000000000000000000015",
+    "verdict": "defect",
+    "repair": "markup_leak",
+    "edit": {
+      "field": "solution",
+      "find": "$\\frac{1}{2}mv^2$",
+      "replace": "&frac12;mv<sup>2</sup>"
+    },
+    "route": "auto_apply",
+    "confidence": 0.95,
+    "evidence": "The stored solution HTML contains raw LaTeX '$\\frac{1}{2}mv^2$' that shows as text, as the code check confirms. The solution's final value of 9 J matches the key C and both solvers.",
+    "student_reply": "Sahi pakda, thanks! Solution mein formula ka code text ki tarah dikh raha tha, ab use saaf formula se badal diya hai. Answer C (9 J) hi sahi hai."
+  },
+  {
+    "reportId": "H017",
+    "questionId": "aa0000000000000000000016",
+    "verdict": "defect",
+    "repair": "noise",
+    "edit": [
+      {
+        "field": "question",
+        "find": "Q.12 The value",
+        "replace": "The value"
+      },
+      {
+        "field": "question",
+        "find": "<br />Space for rough work</h3>",
+        "replace": "</h3>"
+      }
+    ],
+    "route": "auto_apply",
+    "confidence": 0.95,
+    "evidence": "The code check found stray text 'Q.12' and 'Space for rough work' in the question, and the original HTML contains both. The answer A (9.8 m/s^2) is correct and the solution matches it.",
+    "student_reply": "You are right, thank you for pointing it out. We have removed the question number and the 'Space for rough work' text. The answer is unchanged."
+  },
+  {
+    "reportId": "H018",
+    "questionId": "aa0000000000000000000017",
+    "verdict": "no_error",
+    "repair": null,
+    "edit": null,
+    "route": "no_change",
+    "confidence": 0.95,
+    "evidence": "Energy conservation gives mgL/2 = (1/2)(mL²/3)ω², so ω² = 3g/L and the key A is correct. Both solvers got √(3g/L). √(6g/L) would result from using I = mL²/3 but dropping the 1/2 in the KE.",
+    "student_reply": "Good try, but the key A is correct. The centre of mass falls L/2, so mgL/2 = (1/2)(mL²/3)ω². This gives ω² = 3g/L. √(6g/L) comes from forgetting the 1/2 in the rotational KE formula."
+  },
+  {
+    "reportId": "H019",
+    "questionId": "aa0000000000000000000018",
+    "verdict": "defect",
+    "repair": "answer_form",
+    "edit": {
+      "field": "question",
+      "find": "Find the time period of a simple pendulum of length 1 m (g = 9.8 ",
+      "replace": "Find the time period (in s, rounded to the nearest integer) of a simple pendulum of length 1 m (g = 9.8 "
+    },
+    "route": "auto_apply",
+    "confidence": 0.95,
+    "evidence": "The question is an integer type with key 2, but the exact value is about 2.006 s and the stem never says to round to the nearest integer. The missing rounding instruction is a real defect the student noticed.",
+    "student_reply": "You're right, thank you for reporting this. The exact value is about 2.006 s, and the question did not say to round. We have added 'rounded to the nearest integer, in s', so the answer is 2."
+  },
+  {
+    "reportId": "H020",
+    "questionId": "aa0000000000000000000019",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": {
+      "field": "answer",
+      "find": "C",
+      "replace": "A"
+    },
+    "route": "auto_apply",
+    "confidence": 0.93,
+    "evidence": "The pineal gland secretes melatonin (A), as both solvers and the stored solution agree. The stored key is C (Thyroxine), which is wrong.",
+    "student_reply": "Thanks for reporting this. You were right, the answer key was wrong. The pineal gland secretes melatonin, so the correct option is A, and we have fixed it."
+  },
+  {
+    "reportId": "H021",
+    "questionId": "aa0000000000000000000020",
+    "verdict": "defect",
+    "repair": "answer_key",
+    "edit": [
+      {
+        "field": "answer",
+        "find": "B",
+        "replace": "A"
+      },
+      {
+        "field": "solution",
+        "find": "a = F / m = 20 / 5 = 4 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math>",
+        "replace": "a = F / m = 10 / 5 = 2 <math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mrow><mi>m</mi><mo>/</mo><msup><mi>s</mi><mn>2</mn></msup></mrow></math>"
+      }
+    ],
+    "route": "faculty_review",
+    "confidence": 0.6,
+    "evidence": "a = F/m = 10/5 = 2 m/s^2, which is option A, and both solvers got A. The stored key B (4 m/s^2) comes from the solution using 20 N instead of 10 N.",
+    "student_reply": "You're right, thank you for reporting this! With a = F/m = 10/5 = 2 m/s^2, option A is correct, and the stored key looks wrong. A teacher will check it and update it."
+  }
+]
