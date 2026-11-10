@@ -51,6 +51,7 @@ Rules:
 - If your value matches an option, the status is "solved" and the answer is that option, even if the question is worded loosely. Explain any wording problem in "note".
 - If data needed to solve the question is missing, set "status" to "cannot_solve" and name the missing data in "note".
 - If your result matches none of the options, set "status" to "no_option_matches" and give your result in "value".
+- A blank or missing option never matches. Do not guess what it was meant to say.
 - If more than one option is correct in a single-correct question, or none is, say so in "note".
 - Answer format:
   - single-correct: one letter, for example "B"
@@ -75,6 +76,7 @@ Rules:
 
   The cause: `status` was the first field, and the model writes the fields in order. So it chose the status before it did the working.
 - **v2:** I put the fields in the order of the thinking (`working`, `value`, `answer`, `status`, `note`). I added a rule to write the working first and choose the status last, and a rule that a matching value means "solved". **Result:** Both solvers now agree on the status of all 43 questions. Cost: $0.62 for 86 calls.
+- **v3:** I asked the AI to verify this thoroughly. It ran the solvers again with an empty cache, to test if the results are stable. **Problem:** In R011 (option C is blank), Sonnet guessed that the blank option says "1 : 1" and answered C. That is a guess, not a solve. **Fix:** One new rule: "A blank or missing option never matches. Do not guess what it was meant to say." **Result:** Two separate full runs (172 calls) both match my expected answers on all 43 questions, with 0 errors.
 
 ---
 

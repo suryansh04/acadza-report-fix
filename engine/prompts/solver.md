@@ -8,6 +8,7 @@ Rules:
 - If your value matches an option, the status is "solved" and the answer is that option, even if the question is worded loosely. Explain any wording problem in "note".
 - If data needed to solve the question is missing, set "status" to "cannot_solve" and name the missing data in "note".
 - If your result matches none of the options, set "status" to "no_option_matches" and give your result in "value".
+- A blank or missing option never matches. Do not guess what it was meant to say.
 - If more than one option is correct in a single-correct question, or none is, say so in "note".
 - Answer format:
   - single-correct: one letter, for example "B"

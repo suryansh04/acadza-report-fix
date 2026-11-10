@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-opus-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- A blank or missing option never matches. Do not guess what it was meant to say.\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: integer answer (no options)\n\nIn a setup of displacement method experiment, distance between the screen and a light source is 150 cm and the lens used has a small aperture. By moving the lens between the source and the screen, sharp images are obtained on the screen for two different positions of the lens. The focal length of the lens is 24 cm . Find the ratio of the sizes of these two images formed on the screen.",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "Displacement method: D = 150 cm, f = 24 cm. For a sharp image, u + v = 150 and 1/u + 1/v = 1/24, which gives uv = 24 × 150 = 3600.\nSo u and v are the roots of x² − 150x + 3600 = 0. The discriminant is 22500 − 14400 = 8100, so x = (150 ± 90)/2 = 120 cm or 30 cm.\nPosition 1: u = 30 cm, v = 120 cm, so the magnification is 4.\nPosition 2: u = 120 cm, v = 30 cm, so the magnification is 1/4.\nThe object size is the same in both cases, so the ratio of image sizes is 4 ÷ (1/4) = 16.",
+    "value": "16 (larger image : smaller image = 16 : 1)",
+    "answer": "16",
+    "status": "solved",
+    "note": "The question does not say which image comes first in the ratio. The ratio is 16 for the larger to the smaller image, or 1/16 the other way round. An integer answer is asked for, so 16 is given."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-opus-5-5",
+    "input_tokens": 965,
+    "output_tokens": 494,
+    "cost_usd": 0.01374
+  }
+}

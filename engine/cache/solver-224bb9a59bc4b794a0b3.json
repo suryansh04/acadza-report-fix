@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- A blank or missing option never matches. Do not guess what it was meant to say.\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: single-correct (exactly one option is right)\n\nA resistance of 40 ohm and an inductance are connected in series in a 50 cycles/second ac circuit. The impedance of this combination is very nearly\n(A) 30 ohm\n(B) 40 ohm\n(C) 50 ohm\n(D) 60 ohm",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "For a series R-L circuit, Z = sqrt(R^2 + (2*pi*f*L)^2) with R = 40 ohm and f = 50 Hz. The value of L is not given, so Z cannot be computed. Z must be at least 40 ohm, which rules out 30 ohm, but 40, 50 and 60 ohm are each possible for some L.",
+    "value": "Cannot be determined without L",
+    "answer": "",
+    "status": "cannot_solve",
+    "note": "The inductance value is missing from the question. The standard version of this problem uses L = 95.5 mH, which gives X_L = 30 ohm and Z = 50 ohm, but that value is not stated here, so I have not assumed it."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 946,
+    "output_tokens": 404,
+    "cost_usd": 0.005932
+  }
+}

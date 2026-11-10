@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- A blank or missing option never matches. Do not guess what it was meant to say.\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: integer answer (no options)\n\nThe charges q/2 and 2 q are placed at the centre of face and corner of a cube respectively. Total flux through the cube is (n q)/(2 ε_0) . The value of ' n ' is",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "Charge q/2 at the centre of a face: only half of its flux goes through the cube, so flux = (1/2)(q/2)/ε0 = q/(4ε0).\nCharge 2q at a corner: one-eighth of its flux goes through the cube, so flux = (1/8)(2q)/ε0 = q/(4ε0).\nTotal flux = q/(4ε0) + q/(4ε0) = q/(2ε0) = n q/(2ε0), so n = 1.",
+    "value": "n = 1",
+    "answer": "1",
+    "status": "solved",
+    "note": "Both charges lie on the cube's surface. The standard symmetry convention is used: half the flux for a face-centre charge and one-eighth for a corner charge."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 915,
+    "output_tokens": 542,
+    "cost_usd": 0.00725
+  }
+}

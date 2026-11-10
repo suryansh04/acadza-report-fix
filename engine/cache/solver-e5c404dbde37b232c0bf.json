@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- A blank or missing option never matches. Do not guess what it was meant to say.\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: integer answer (no options)\n\nThe volume contraction of a solid copper cube, when subjected to a hydraulic pressure of 7 × 10^6 P a , would be _ _ _ _ m m^3 .\n(Given bulk modulus of copper = 1.4 × 10^11 N m^(− 2) )",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "Bulk modulus B = P V / ΔV, so ΔV = P V / B. P and B are given, but the cube's side (hence its volume V) is not stated. Without V, ΔV cannot be found.",
+    "value": "Cannot be determined without the cube's side length",
+    "answer": "",
+    "status": "cannot_solve",
+    "note": "The side length of the copper cube is missing. This looks like the standard JEE question with a 10 cm cube. In that case V = 1e-3 m^3 and ΔV = 7e6 × 1e-3 / 1.4e11 = 5e-8 m^3 = 50 mm^3. That value is not in the question as given, so I have not used it as the answer."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 943,
+    "output_tokens": 420,
+    "cost_usd": 0.006086
+  }
+}

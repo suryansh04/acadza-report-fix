@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-opus-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- A blank or missing option never matches. Do not guess what it was meant to say.\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Botany\nQuestion type: single-correct (exactly one option is right)\n\n(NEET 2019) Which of the following is the green expanded part ofleaf with vein and veinlets?\n(A) Petiole\n(B) Node\n(C) Stipule\n(D) Lamina",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "A typical leaf has three parts: the leaf base (sometimes with stipules), the petiole, and the lamina (leaf blade). The lamina is the green, flat, expanded part of the leaf. It carries the midrib, veins and veinlets. The petiole is the stalk that attaches the leaf, and a stipule is a small outgrowth at the leaf base. A node is the region of the stem where leaves arise, so it is not part of the leaf.",
+    "value": "Lamina (leaf blade)",
+    "answer": "D",
+    "status": "solved",
+    "note": "The question has a typo: 'ofleaf' should read 'of leaf'."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-opus-5-5",
+    "input_tokens": 920,
+    "output_tokens": 209,
+    "cost_usd": 0.00786
+  }
+}
