@@ -1,8 +1,8 @@
 {
   "total_calls": 60,
-  "calls_served_from_cache": 59,
+  "calls_served_from_cache": 60,
   "full_run_cost_usd": 0.5021,
-  "this_run_cost_usd": 0.0139,
+  "this_run_cost_usd": 0,
   "by_step": {
     "solver": {
       "calls": 40,
