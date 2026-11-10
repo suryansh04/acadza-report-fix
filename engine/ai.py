@@ -1,12 +1,15 @@
 import hashlib
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Literal
 
 import anthropic
+from pydantic import BaseModel
 
-from parse import Question
+from checks import Finding
+from parse import Question, load_taxonomy
 
 ENGINE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = ENGINE_DIR.parent
@@ -25,18 +28,50 @@ QUESTION_TYPE_LABELS = {
     "integerQuestion": "integer answer (no options)",
 }
 
-SOLVER_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "status": {"type": "string", "enum": ["solved", "cannot_solve", "no_option_matches"]},
-        "answer": {"type": "string"},
-        "value": {"type": "string"},
-        "working": {"type": "string"},
-        "note": {"type": "string"},
-    },
-    "required": ["status", "answer", "value", "working", "note"],
-    "additionalProperties": False,
-}
+TAXONOMY = load_taxonomy()
+Verdict = Literal[tuple(TAXONOMY["verdicts"])]
+Repair = Literal[tuple(TAXONOMY["repairs"])]
+RepairOrNone = Literal[tuple(TAXONOMY["repairs"]) + ("none",)]
+
+
+class SolverResult(BaseModel):
+    # Field order is the order the model writes in, so it works the problem out before it commits to a status.
+    working: str
+    value: str
+    answer: str
+    status: Literal["solved", "cannot_solve", "no_option_matches"]
+    note: str
+
+
+class Edit(BaseModel):
+    field: Literal["question", "solution", "answer", "questionType"]
+    find: str
+    replace: str
+
+
+class ReportJudgment(BaseModel):
+    report_id: str
+    student_claim: str
+    claim_supported: Literal["yes", "partly", "no", "unclear"]
+    verdict: Verdict
+    repair: RepairOrNone
+    edits: list[Edit]
+    evidence: str
+    reply_final: str
+    reply_pending: str
+
+
+class OtherDefect(BaseModel):
+    repair: Repair
+    evidence: str
+    edits: list[Edit]
+
+
+class JudgeResult(BaseModel):
+    solution_answer: str
+    solution_fits_question: bool
+    reports: list[ReportJudgment]
+    other_defects: list[OtherDefect]
 
 
 @dataclass
@@ -46,7 +81,7 @@ class CallUsage:
     input_tokens: int
     output_tokens: int
     cost_usd: float
-    from_cache: bool
+    from_cache: bool = False
 
 
 class ModelRefusedError(Exception):
@@ -76,23 +111,24 @@ def build_cache_path(step: str, request: dict) -> Path:
     return CACHE_DIR / f"{step}-{digest}.json"
 
 
-def call_claude_for_json(step: str, model: str, system_prompt: str, user_message: str,
-                         schema: dict, effort: str, client: anthropic.Anthropic | None = None) -> tuple[dict, CallUsage]:
-    request = {"model": model, "system": system_prompt, "user": user_message, "schema": schema, "effort": effort}
+def call_claude[T: BaseModel](step: str, model: str, system_prompt: str, user_message: str,
+                              output_model: type[T], effort: str) -> tuple[T, CallUsage]:
+    # The schema is part of the key, so changing a model's fields forces a fresh call.
+    request = {"model": model, "system": system_prompt, "user": user_message,
+               "schema": output_model.model_json_schema(), "effort": effort}
     cache_path = build_cache_path(step, request)
 
     if cache_path.exists():
         cached = json.loads(cache_path.read_text(encoding="utf-8"))
-        usage = CallUsage(**{**cached["usage"], "from_cache": True})
-        return cached["result"], usage
+        return output_model.model_validate(cached["result"]), CallUsage(**cached["usage"], from_cache=True)
 
-    client = client or anthropic.Anthropic()
-    response = client.beta.messages.create(
+    response = anthropic.Anthropic().beta.messages.parse(
         model=model,
         max_tokens=MAX_OUTPUT_TOKENS,
         system=system_prompt,
         messages=[{"role": "user", "content": user_message}],
-        output_config={"effort": effort, "format": {"type": "json_schema", "schema": schema}},
+        output_format=output_model,
+        output_config={"effort": effort},
         betas=[FALLBACK_BETA],
         fallbacks="default",
     )
@@ -101,20 +137,21 @@ def call_claude_for_json(step: str, model: str, system_prompt: str, user_message
     if response.stop_reason == "max_tokens":
         raise RuntimeError(f"{model} hit the output limit on the {step} request. Raise MAX_OUTPUT_TOKENS.")
 
-    text = next(block.text for block in response.content if block.type == "text")
-    result = json.loads(text)
+    result = response.parsed_output
     usage = CallUsage(
         step=step,
         model=model,
         input_tokens=response.usage.input_tokens,
         output_tokens=response.usage.output_tokens,
         cost_usd=calculate_cost_usd(model, response.usage.input_tokens, response.usage.output_tokens),
-        from_cache=False,
     )
 
     CACHE_DIR.mkdir(exist_ok=True)
-    cached_usage = {key: value for key, value in usage.__dict__.items() if key != "from_cache"}
-    cache_path.write_text(json.dumps({"request": request, "result": result, "usage": cached_usage}, indent=2, ensure_ascii=False), encoding="utf-8")
+    usage_to_store = {key: value for key, value in asdict(usage).items() if key != "from_cache"}
+    cache_path.write_text(
+        json.dumps({"request": request, "result": result.model_dump(mode="json"), "usage": usage_to_store}, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     return result, usage
 
 
@@ -125,5 +162,54 @@ def format_question_for_solver(question: Question) -> str:
     return "\n".join(lines)
 
 
-def solve_question(question: Question, model: str, effort: str = "high", step: str = "solver") -> tuple[dict, CallUsage]:
-    return call_claude_for_json(step, model, read_prompt("solver"), format_question_for_solver(question), SOLVER_SCHEMA, effort)
+def solve_question(question: Question, model: str, effort: str = "high", step: str = "solver") -> tuple[SolverResult, CallUsage]:
+    return call_claude(step, model, read_prompt("solver"), format_question_for_solver(question), SolverResult, effort)
+
+
+def format_question_for_judge(question: Question, findings: list[Finding], solver_results: list[SolverResult]) -> str:
+    options = "\n".join(f"({letter}) {text or '[blank]'}" for letter, text in question.options.items()) or "(no options: integer question)"
+    finding_lines = "\n".join(
+        f"- {finding.detail}" + (f" [report {finding.report_id}]" if finding.report_id else "") for finding in findings
+    ) or "- No problems found."
+    solver_lines = "\n".join(
+        f"- Solver {index}: status={result.status}, answer={result.answer or '-'}, value={result.value or '-'}. "
+        f"Working: {result.working} Note: {result.note or '-'}"
+        for index, result in enumerate(solver_results, start=1)
+    )
+    report_blocks = "\n".join(
+        f'<report id="{report.report_id}" platform="{report.source}" reported_at="{report.reported_at}">\n'
+        f"<comment>{report.comment}</comment>\n</report>"
+        for report in question.reports
+    ) or "No student reports. Look only for other defects."
+
+    return f"""<question id="{question.question_id}" subject="{question.subject}" chapter="{question.chapter}" type="{QUESTION_TYPE_LABELS[question.question_type]}" last_edited="{question.updated_at}">
+<stem>{question.stem_text}</stem>
+<options>
+{options}
+</options>
+<answer_key>{question.answer!r}</answer_key>
+<solution>{question.solution_text}</solution>
+<original_question_html>{question.raw_question_html}</original_question_html>
+<original_solution_html>{question.raw_solution_html}</original_solution_html>
+</question>
+
+<code_checks>
+{finding_lines}
+</code_checks>
+
+<solvers>
+{solver_lines}
+</solvers>
+
+<reports>
+{report_blocks}
+</reports>
+
+<taxonomy>
+{json.dumps(TAXONOMY, indent=1, ensure_ascii=False)}
+</taxonomy>"""
+
+
+def judge_question(question: Question, findings: list[Finding], solver_results: list[SolverResult]) -> tuple[JudgeResult, CallUsage]:
+    user_message = format_question_for_judge(question, findings, solver_results)
+    return call_claude("judge", SONNET, read_prompt("judge"), user_message, JudgeResult, "high")

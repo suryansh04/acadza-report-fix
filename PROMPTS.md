@@ -36,9 +36,9 @@ Format for each prompt:
 
 **Job:** Solve the question with no hints. It does not see the key, the solution or the student comments.
 
-**File:** [engine/prompts/solver.md](engine/prompts/solver.md). The user message has the subject, the question type, the question text and the options. The output is constrained by a JSON schema: `status`, `answer`, `value`, `working`, `note`.
+**File:** [engine/prompts/solver.md](engine/prompts/solver.md). The user message has the subject, the question type, the question text and the options. The output is a Pydantic model (`SolverResult` in `engine/ai.py`), in this field order: `working`, `value`, `answer`, `status`, `note`.
 
-**Prompt (version 1):**
+**Prompt (version 2):**
 
 ```text
 You are an experienced JEE and NEET teacher. Solve the question below on your own.
@@ -46,7 +46,9 @@ You are an experienced JEE and NEET teacher. Solve the question below on your ow
 You see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.
 
 Rules:
+- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.
 - Solve from first principles and check your arithmetic.
+- If your value matches an option, the status is "solved" and the answer is that option, even if the question is worded loosely. Explain any wording problem in "note".
 - If data needed to solve the question is missing, set "status" to "cannot_solve" and name the missing data in "note".
 - If your result matches none of the options, set "status" to "no_option_matches" and give your result in "value".
 - If more than one option is correct in a single-correct question, or none is, say so in "note".
@@ -67,6 +69,12 @@ Rules:
   - Both said "no option matches" for the blank option (R011).
   - The two solvers disagreed on only one question, R034, where no option is correct. The tiebreak solver handles this case.
   - The `note` field also found defects that nobody reported, for example "ofleaf", "Von Helmont" and a unit inside a square root in R030's options.
+- **v1.1:** I changed the output from a hand-written JSON schema to Pydantic models, and ran the solvers again. **Problem:** Two Sonnet answers changed:
+  - In R004, its working said "4800 N/m². This matches option D", but its status was "no option matches" and the answer was empty.
+  - In R017, it said "no option matches" for a loosely worded question, but also wrote that C is the best match.
+
+  The cause: `status` was the first field, and the model writes the fields in order. So it chose the status before it did the working.
+- **v2:** I put the fields in the order of the thinking (`working`, `value`, `answer`, `status`, `note`). I added a rule to write the working first and choose the status last, and a rule that a matching value means "solved". **Result:** Both solvers now agree on the status of all 43 questions. Cost: $0.62 for 86 calls.
 
 ---
 

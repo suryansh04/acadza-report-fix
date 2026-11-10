@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: single-correct (exactly one option is right)\n\nIn an AC circuit, the current is i = 5 sin ( 100 t − π/2 ) A and voltage is e = 200 sin ( 100 t ) volt. Power consumption in the circuit is ( cos 90^(∘) = 0 )\n(A) 200 W\n(B) 0 W\n(C) 0 W\n(D) 1000 W",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "Phase difference between e and i: e has phase 100t, i has phase 100t − π/2, so φ = π/2 = 90°.\nAverage power P = Vrms·Irms·cos φ = (200/√2)(5/√2)·cos 90° = 500 × 0 = 0 W.\nThe circuit is purely reactive (wattless current), so power consumed is zero.",
+    "value": "0 W",
+    "answer": "B",
+    "status": "solved",
+    "note": "Options B and C are identical (both 0 W), so the question has two equally correct options. B is given as the answer by choosing the first matching option."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 945,
+    "output_tokens": 199,
+    "cost_usd": 0.00388
+  }
+}

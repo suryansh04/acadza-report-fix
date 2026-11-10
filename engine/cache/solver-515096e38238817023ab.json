@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: multiple-correct (one or more options are right)\n\nSelect the correct statement(s) from the following. The path of a charged particle moving with an initial velocity u\n(A) parallel to the uniform electrostatic field is a straight line.\n(B) perpendicular to the uniform electrostatic field is a parabola.\n(C) parallel to the uniform magnetic field is a helix with its axis parallel to the direction of\nB .\n(D) perpendicular to the uniform magnetic field is a circle in a plane normal to the field.",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "A: Velocity along E means the force qE is along the line of motion, so the motion is rectilinear. True.\nB: Velocity perpendicular to E gives constant acceleration perpendicular to u, so x = ut and y = (1/2)(qE/m)t². This is a parabola. True.\nC: Velocity parallel to B gives F = qv×B = 0, so the path is a straight line, not a helix. False.\nD: Velocity perpendicular to B gives a constant-magnitude force perpendicular to v and B, so the path is a circle of radius mv/qB in a plane normal to B. True.",
+    "value": "A, B and D are correct",
+    "answer": "A, B, D",
+    "status": "solved",
+    "note": "Statement C would be correct only if u had a component both parallel and perpendicular to B. With u purely parallel to B, the path is a straight line."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 982,
+    "output_tokens": 414,
+    "cost_usd": 0.006104
+  }
+}

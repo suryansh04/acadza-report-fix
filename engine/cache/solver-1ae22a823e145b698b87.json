@@ -1,0 +1,60 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Write the working first, then the value, then the answer. Choose the status last, so it agrees with your working.\n- Solve from first principles and check your arithmetic.\n- If your value matches an option, the status is \"solved\" and the answer is that option, even if the question is worded loosely. Explain any wording problem in \"note\".\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: single-correct (exactly one option is right)\n\nThe kinetic energy of an electron with de-Broglie wavelength of 0.3 nanometer is\n(A) 0.168 eV\n(B) 16.8 eV\n(C) 1.68 eV\n(D) 2.5 eV",
+    "schema": {
+      "properties": {
+        "working": {
+          "title": "Working",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "answer": {
+          "title": "Answer",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "required": [
+        "working",
+        "value",
+        "answer",
+        "status",
+        "note"
+      ],
+      "title": "SolverResult",
+      "type": "object"
+    },
+    "effort": "high"
+  },
+  "result": {
+    "working": "λ = h/p, so KE = h²/(2mλ²). Using the shortcut λ(Å) = 12.27/√V(volts), λ = 3 Å gives √V = 4.09, so V = 16.73 V and KE ≈ 16.7 eV. Check directly: h² = (6.626e-34)² = 4.390e-67; 2mλ² = 2 × 9.11e-31 × 9e-20 = 1.640e-49; KE = 2.677e-18 J; dividing by 1.602e-19 gives 16.7 eV. This is closest to 16.8 eV (option B).",
+    "value": "≈16.7 eV (about 16.8 eV)",
+    "answer": "B",
+    "status": "solved",
+    "note": "The calculated value of 16.7 eV differs slightly from 16.8 eV because of rounding in the constants. Option B is the only one close."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 907,
+    "output_tokens": 291,
+    "cost_usd": 0.004724
+  }
+}
