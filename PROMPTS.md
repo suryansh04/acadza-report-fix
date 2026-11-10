@@ -293,6 +293,27 @@ Format for each prompt:
 - **Fix:** A question needs at least one report to be in a queue. Bulk actions and progress use only the reports of the queue's own route. A test confirmed that "Keep all" changed exactly the 23 auto-applied reports.
 - **Lesson:** Compare what the screen shows with the data. An "every" rule on an empty list is a common trap.
 
+### 7. A code review found 10 problems in its console code
+
+- **Error:** A review of the whole frontend (`/code-review`) found 10 problems. The most serious:
+  - A fast double key press could save two decisions on one report.
+  - "Save anyway" could save text that was changed after the format check.
+  - An old "Undo" button could cancel a newer decision.
+  - Text that went into `innerHTML` could run a script hidden in AI output.
+  - The teacher could not edit any field, which breaks a rule in `CLAUDE.md`.
+  - Dependencies were not pinned.
+- **How I found it:** I asked for `/code-review` on the frontend. It reported each problem with a failure scenario.
+- **Fix:**
+  - The server allows one decision per report. A second decision is refused until the first is undone, so a double press or a second tab cannot save twice.
+  - Undo targets a decision by its audit entry id. The server skips a decision that was already undone or replaced.
+  - Warnings clear as soon as the teacher changes the draft.
+  - All HTML goes through DOMPurify (with MathML support) before it is shown. Plain text is read with DOMParser, which runs nothing.
+  - A new edit form lets the teacher change the question, solution, key or type on any report.
+  - All dependencies are pinned. Build-only tools moved to devDependencies.
+  - Repeated code is shared (keyboard hook, edit row, counts). The unused starter files are deleted.
+- **Check:** 10 API tests and a browser test passed. For example, pressing A, A and R fast saved one decision, and an injected `<img onerror>` did not run.
+- **Lesson:** Run a separate code review on UI code too. The bugs were in the details between key presses and server answers, not in the visible screens.
+
 <!--
 Format for each case:
 
