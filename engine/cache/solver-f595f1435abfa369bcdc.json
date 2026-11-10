@@ -1,0 +1,55 @@
+{
+  "request": {
+    "model": "claude-sonnet-5-5",
+    "system": "You are an experienced JEE and NEET teacher. Solve the question below on your own.\n\nYou see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.\n\nRules:\n- Solve from first principles and check your arithmetic.\n- If data needed to solve the question is missing, set \"status\" to \"cannot_solve\" and name the missing data in \"note\".\n- If your result matches none of the options, set \"status\" to \"no_option_matches\" and give your result in \"value\".\n- If more than one option is correct in a single-correct question, or none is, say so in \"note\".\n- Answer format:\n  - single-correct: one letter, for example \"B\"\n  - multiple-correct: every correct letter, comma separated, for example \"A, C, D\"\n  - integer: the number only, in the unit the question asks for, for example \"8\"\n- \"value\": your final result with its unit, for example \"50 V\".\n- \"working\": a short worked solution, at most 6 lines.\n- \"note\": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.\n",
+    "user": "Subject: Physics\nQuestion type: integer answer (no options)\n\nIn YDSE distance between the slits plane and screen is 1 m and distance between two slits is 5 mm . If slabs of thickness 2 mm and 1.5 mm having refractive index 1.5 and 1.4 are placed in front of two slits, find the shift (in cm ) of central maxima",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "solved",
+            "cannot_solve",
+            "no_option_matches"
+          ]
+        },
+        "answer": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "working": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "answer",
+        "value",
+        "working",
+        "note"
+      ],
+      "additionalProperties": false
+    },
+    "effort": "high"
+  },
+  "result": {
+    "status": "solved",
+    "answer": "8",
+    "value": "8 cm",
+    "working": "Extra optical path from slab 1 = (1.5-1)(2 mm) = 1 mm. Extra optical path from slab 2 = (1.4-1)(1.5 mm) = 0.6 mm. Net path difference introduced = 0.4 mm. Shift of central maximum = (D/d) x 0.4 mm = (1 m / 5 mm) x 0.4 mm = 0.08 m = 8 cm, toward the slit covered by the 2 mm slab.",
+    "note": "The question does not say which slab covers which slit. I assumed they are on opposite slits, with the 2 mm slab (μ = 1.5) on one and the 1.5 mm slab (μ = 1.4) on the other."
+  },
+  "usage": {
+    "step": "solver",
+    "model": "claude-sonnet-5-5",
+    "input_tokens": 790,
+    "output_tokens": 455,
+    "cost_usd": 0.00613
+  }
+}

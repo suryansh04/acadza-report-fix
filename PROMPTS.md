@@ -32,6 +32,42 @@ Format for each prompt:
 - **v2:** <what I changed>. **Result:** <what improved>.
 -->
 
+### Solver
+
+**Job:** Solve the question with no hints. It does not see the key, the solution or the student comments.
+
+**File:** [engine/prompts/solver.md](engine/prompts/solver.md). The user message has the subject, the question type, the question text and the options. The output is constrained by a JSON schema: `status`, `answer`, `value`, `working`, `note`.
+
+**Prompt (version 1):**
+
+```text
+You are an experienced JEE and NEET teacher. Solve the question below on your own.
+
+You see only the question and its options. You do not see the answer key, the stored solution, or any student comment. Do not guess what the expected answer is. Work it out.
+
+Rules:
+- Solve from first principles and check your arithmetic.
+- If data needed to solve the question is missing, set "status" to "cannot_solve" and name the missing data in "note".
+- If your result matches none of the options, set "status" to "no_option_matches" and give your result in "value".
+- If more than one option is correct in a single-correct question, or none is, say so in "note".
+- Answer format:
+  - single-correct: one letter, for example "B"
+  - multiple-correct: every correct letter, comma separated, for example "A, C, D"
+  - integer: the number only, in the unit the question asks for, for example "8"
+- "value": your final result with its unit, for example "50 V".
+- "working": a short worked solution, at most 6 lines.
+- "note": anything wrong or unclear in the question itself. Leave it empty if nothing is wrong.
+```
+
+**Changes:**
+
+- **v1:** The first version. **Result:** On all 43 questions, Sonnet 5.5 and Opus 5.5 gave the same answer as my own expected answers. The run used 86 calls and cost $0.58.
+  - Both solvers found the 4 wrong keys: R001–R003, R004, R005 and R020.
+  - Both said "cannot solve" for the 2 questions with missing data (R006, R007).
+  - Both said "no option matches" for the blank option (R011).
+  - The two solvers disagreed on only one question, R034, where no option is correct. The tiebreak solver handles this case.
+  - The `note` field also found defects that nobody reported, for example "ofleaf", "Von Helmont" and a unit inside a square root in R030's options.
+
 ---
 
 ## 2. The prompts I gave my coding AI
