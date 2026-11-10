@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { Check, CheckCheck, Inbox, MessageSquareQuote, Pencil, RotateCcw, TriangleAlert, Wrench, X } from "lucide-react"
 
 import type { ActionName, ActionResult, Edit, Report } from "@/api"
+import { MathHtml } from "@/components/ChangePreview"
 import { IconChip, Pill, type Tone } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
@@ -30,7 +31,7 @@ function ConfidenceMeter({ value }: { value: number }) {
       <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
         <div className={cn("h-full rounded-full", tone)} style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
-      <span className="font-mono text-xs tabular-nums text-muted-foreground">{Math.round(value * 100)}%</span>
+      <span className="text-xs tabular-nums text-muted-foreground">Confidence {Math.round(value * 100)}%</span>
     </div>
   )
 }
@@ -42,9 +43,9 @@ function EditSummary({ edit }: { edit: Edit }) {
     <div className="grid gap-1 rounded-xl bg-muted px-3 py-2.5 text-sm sm:grid-cols-[7rem_1fr]">
       <span className="text-xs text-muted-foreground">{FIELD_LABELS[edit.field]}</span>
       <span className="min-w-0 wrap-break-word">
-        <del className="rounded bg-bad/10 px-1 text-bad">{before || "(nothing)"}</del>
+        <del className="rounded bg-background px-1 text-bad">{before || "(nothing)"}</del>
         <span className="mx-1.5 text-muted-foreground">to</span>
-        <ins className="rounded bg-good/15 px-1 text-good no-underline">{after || "(removed)"}</ins>
+        <ins className="rounded bg-background px-1 font-medium text-good no-underline">{after || "(removed)"}</ins>
       </span>
     </div>
   )
@@ -70,6 +71,15 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
       setEditing(false)
       setWarnings([])
     }
+  }
+
+  const saveEdit = () => submit("edit", { edits: draftEdits, reply: draftReply })
+
+  const cancelEdit = () => {
+    setEditing(false)
+    setWarnings([])
+    setDraftEdits(report.edits)
+    setDraftReply(report.reply)
   }
 
   useEffect(() => {
@@ -112,9 +122,9 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
         </div>
       </blockquote>
 
-      <div className="flex flex-col gap-1 text-sm">
+      <div className="flex max-w-[65ch] flex-col gap-1.5 text-sm">
         <p><span className="font-medium">Why: </span>{report.evidence}</p>
-        <p className="text-xs text-muted-foreground"><span className="font-medium">Route: </span>{report.route_reason}</p>
+        <p className="text-[13px] text-muted-foreground"><span className="font-medium">Route: </span>{report.route_reason}</p>
       </div>
 
       {report.edits.length > 0 && !editing && (
@@ -122,27 +132,43 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
       )}
 
       {editing ? (
-        <div className="flex flex-col gap-2">
+        <div
+          className="flex flex-col gap-3"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") cancelEdit()
+            if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) void saveEdit()
+          }}
+        >
           {draftEdits.map((edit, index) => (
-            <label key={index} className="flex flex-col gap-1 text-xs text-muted-foreground" htmlFor={`edit-${report.report_id}-${index}`}>
-              New {FIELD_LABELS[edit.field].toLowerCase()} text
+            <div key={index} className="flex flex-col gap-1.5">
+              <label className="text-[13px] font-medium text-muted-foreground" htmlFor={`edit-${report.report_id}-${index}`}>
+                New {FIELD_LABELS[edit.field].toLowerCase()} text
+              </label>
               <Textarea
                 id={`edit-${report.report_id}-${index}`}
+                autoFocus={index === 0}
                 className="font-mono text-xs"
                 value={edit.replace}
                 onChange={(event) => setDraftEdits(draftEdits.map((item, position) => (position === index ? { ...item, replace: event.target.value } : item)))}
               />
-            </label>
+              {(edit.field === "question" || edit.field === "solution") && edit.replace && (
+                <div className="rounded-xl bg-muted px-3 py-2">
+                  <p className="mb-1 text-xs text-muted-foreground">Preview</p>
+                  <MathHtml html={edit.replace} className="text-sm" />
+                </div>
+              )}
+            </div>
           ))}
-          <label className="flex flex-col gap-1 text-xs text-muted-foreground" htmlFor={`reply-${report.report_id}`}>
-            Reply to the student
-            <Textarea id={`reply-${report.report_id}`} value={draftReply} onChange={(event) => setDraftReply(event.target.value)} />
-          </label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[13px] font-medium text-muted-foreground" htmlFor={`reply-${report.report_id}`}>Reply to the student</label>
+            <Textarea id={`reply-${report.report_id}`} autoFocus={draftEdits.length === 0} value={draftReply} onChange={(event) => setDraftReply(event.target.value)} />
+          </div>
+          <p className="text-xs text-muted-foreground"><Kbd>Ctrl</Kbd> <Kbd>Enter</Kbd> to save · <Kbd>Esc</Kbd> to cancel</p>
         </div>
       ) : (
         <div className="rounded-xl bg-period-bg p-3 text-sm">
           <p className="mb-1 text-xs font-medium text-period">Reply the student will see</p>
-          <p>{report.teacher_action?.reply || report.reply}</p>
+          <p className="max-w-[65ch]">{report.teacher_action?.reply || report.reply}</p>
         </div>
       )}
 
@@ -175,8 +201,8 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
         )}
         {editing && (
           <>
-            <Button className="h-9 rounded-lg px-3" disabled={busy} onClick={() => submit("edit", { edits: draftEdits, reply: draftReply })}>Save edit</Button>
-            <Button className="h-9 rounded-lg px-3" variant="ghost" disabled={busy} onClick={() => { setEditing(false); setWarnings([]) }}>Cancel</Button>
+            <Button className="h-9 rounded-lg px-3" disabled={busy} onClick={() => void saveEdit()}>Save edit</Button>
+            <Button className="h-9 rounded-lg px-3" variant="ghost" disabled={busy} onClick={cancelEdit}>Cancel</Button>
           </>
         )}
       </footer>

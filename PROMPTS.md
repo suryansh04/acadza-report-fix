@@ -530,3 +530,18 @@ Format for each decision:
   - **Reason text:** A spelling fix showed a reason about the answer key.
   - **Cache:** A new cache folder crashed, because the parent folders were not created.
 - **Result:** All six problems are fixed. The hard set scores 21/21 on verdict, repair and route, with 0 unsafe auto-fixes, in two independent runs. The original set still scores 44/44. A fresh hard run costs about $0.51 and takes about 45 seconds.
+
+### 18. A UI/UX review loop on every page and state
+
+- **Problem:** UI/UX is graded. A page can look right in one screenshot and still be slow or confusing to use.
+- **Decision:** I asked the AI to check every page and state on a test server that writes to a local database: first visit, name entry, approve, edit with warnings, undo, audit log, dark mode, a collapsed sidebar, a 1280x720 laptop screen and a phone. It took screenshots after each fix.
+- **What it found and fixed:**
+  - The approve, edit and reject buttons were below the fold. The student report and its buttons now come first, and the question and the vote come after them.
+  - The name card in the sidebar covered "Audit log" on short screens. It now shows only until a name is saved. The name is then in the profile menu at the top right, and an action without a name opens that menu.
+  - Some text failed the WCAG AA contrast check (green, blue and red text, 12px descriptions). The text colors and sizes now pass.
+  - When a question is finished, a "Next question" button appears. J also moves to the next question.
+  - In edit mode, Ctrl+Enter saves and Esc cancels. Cancel resets the draft. HTML edits show a rendered preview.
+  - The audit log now shows the question, the action in plain words, and a link to the case.
+  - Unreported defects now have an "Open question" button. The page also says clearly that the engine does not change them.
+  - The urgency number now has a label and shows only in "Needs you", where it sets the order.
+  - On a phone, the whole review page now scrolls, not one small box.

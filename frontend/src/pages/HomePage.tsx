@@ -53,7 +53,7 @@ function InsightRow({ icon: Icon, tone, title, text }: { icon: IconComponent; to
       <Icon className={cn("size-5 shrink-0", tone)} />
       <div className="flex min-w-0 flex-col gap-1.5">
         <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-muted-foreground">{text}</p>
+        <p className="text-[13px] text-muted-foreground">{text}</p>
       </div>
     </div>
   )
@@ -114,7 +114,7 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
           <MetricCard label="Auto-fixed" value={casesInQueue(cases, "auto-fixed").length} unit="questions" icon={Wrench} color="var(--tone-green)"
             emphasis={String(autoFixed)} note="fixes live, each can be undone" good onClick={() => onNavigate("auto-fixed")} />
           <MetricCard label="No change" value={casesInQueue(cases, "no-change").length} unit="questions" icon={CheckCheck} color="var(--tone-indigo)"
-            emphasis={String(studentWrong)} note="reports where the student was wrong" good onClick={() => onNavigate("no-change")} />
+            emphasis={String(studentWrong)} note="students were wrong" good onClick={() => onNavigate("no-change")} />
           <MetricCard label="Unreported" value={unreported} unit="defects" icon={SearchCheck} color="var(--tone-cyan)"
             emphasis="Found" note="while checking other reports" good={unreported === 0} onClick={() => onNavigate("unreported")} />
         </div>
@@ -149,7 +149,7 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
                 <button key={item.questionId} type="button" onClick={() => onNavigate("needs-you", item.questionId)}
                   className="flex flex-col gap-1.5 rounded-xl bg-muted px-3 py-2 text-left transition-colors hover:bg-accent">
                   <p className="text-sm font-medium">{repair ? REPAIR_LABELS[repair] ?? repair : "Check"} · {item.subject}</p>
-                  <p className="line-clamp-1 text-xs text-muted-foreground/80">{stripHtml(item.before.question_html)}</p>
+                  <p className="line-clamp-1 text-[13px] text-muted-foreground">{stripHtml(item.before.question_html)}</p>
                 </button>
               )
             })}

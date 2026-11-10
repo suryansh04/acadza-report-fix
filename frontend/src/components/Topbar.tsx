@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { UserRound } from "lucide-react"
 
 import type { Case } from "@/api"
 import { BellIcon, SearchIcon } from "@/components/icons"
+import { ReviewerNameForm } from "@/components/ReviewerNameForm"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { queueForCase, stripHtml } from "@/lib/cases"
@@ -80,22 +82,72 @@ function CaseSearch({ cases, onOpen }: { cases: Case[]; onOpen: (item: Case) => 
 }
 
 function initialsOf(name: string): string {
-  const letters = name.trim().split(/\s+/).filter(Boolean).map((word) => word[0]?.toUpperCase())
-  return letters.slice(0, 2).join("") || "?"
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0].toUpperCase()).join("")
 }
 
-type TopbarProps = {
+type ProfileMenuProps = {
+  reviewer: string
+  database: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onReviewerChange: (name: string) => void
+}
+
+function ProfileMenu({ reviewer, database, open, onOpenChange, onReviewerChange }: ProfileMenuProps) {
+  const databaseText = database === null ? "Server offline" : ({ "": "Connecting…", supabase: "Saved to Supabase" }[database] ?? "Saved locally")
+  const databaseTone = database === null ? "text-bad" : "text-live"
+
+  useEffect(() => {
+    if (!open) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onOpenChange(false)
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [open, onOpenChange])
+
+  return (
+    <div className="relative">
+      <button type="button" aria-expanded={open} aria-label="Your reviewer profile" onClick={() => onOpenChange(!open)} className="flex items-center gap-2 rounded-lg text-left">
+        <span className="flex size-11 items-center justify-center rounded-lg bg-period-bg text-base font-medium text-period">
+          {reviewer ? initialsOf(reviewer) : <UserRound className="size-5" />}
+        </span>
+        <span className="hidden flex-col items-start gap-1 md:flex">
+          <span className={reviewer ? "text-base leading-none font-medium" : "text-base leading-none font-medium text-period"}>{reviewer || "Add your name"}</span>
+          <span className="flex items-center gap-1.5 text-sm leading-none text-muted-foreground">
+            Teacher
+            <span aria-hidden className="block size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
+            <span className={databaseTone}>{databaseText}</span>
+          </span>
+        </span>
+      </button>
+      {open && (
+        <>
+          <button type="button" aria-label="Close" tabIndex={-1} className="fixed inset-0 z-40 cursor-default" onClick={() => onOpenChange(false)} />
+          <div className="absolute top-full right-0 z-50 mt-2 flex w-80 flex-col gap-3 rounded-xl border bg-popover p-3 shadow-lg">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm font-medium">Your name</p>
+              <p className="text-[13px] text-muted-foreground">The audit log saves it with each approve, edit and reject.</p>
+            </div>
+            <ReviewerNameForm name={reviewer} autoFocus onSave={(name) => { onReviewerChange(name); onOpenChange(false) }} />
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+type TopbarProps = Omit<ProfileMenuProps, "open" | "onOpenChange"> & {
   page: Page
   cases: Case[]
   openReports: number
-  reviewer: string
-  database: string | null
+  profileOpen: boolean
+  onProfileOpenChange: (open: boolean) => void
   onNavigate: (page: Page, questionId?: string) => void
 }
 
-export function Topbar({ page, cases, openReports, reviewer, database, onNavigate }: TopbarProps) {
+export function Topbar({ page, cases, openReports, profileOpen, onProfileOpenChange, onNavigate, ...profile }: TopbarProps) {
   const { label, icon: PageIcon } = PAGE_META[page]
-  const databaseText = database === null ? "Server offline" : ({ "": "Connecting…", supabase: "Saved to Supabase" }[database] ?? "Saved locally")
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b px-4 md:h-20 md:pr-8 md:pl-6">
@@ -123,17 +175,7 @@ export function Topbar({ page, cases, openReports, reviewer, database, onNavigat
             </svg>
           )}
         </Button>
-        <div className="flex items-center gap-2">
-          <span className="flex size-11 items-center justify-center rounded-lg bg-period-bg text-base font-medium text-period">{initialsOf(reviewer)}</span>
-          <div className="hidden flex-col items-start gap-1 md:flex">
-            <span className="text-base leading-none font-medium">{reviewer.trim() || "Reviewer"}</span>
-            <span className="flex items-center gap-1.5 text-sm leading-none text-muted-foreground">
-              Teacher
-              <span aria-hidden className="block size-1.5 shrink-0 rounded-full bg-muted-foreground/50" />
-              <span className={database === null ? "text-bad" : "text-live"}>{databaseText}</span>
-            </span>
-          </div>
-        </div>
+        <ProfileMenu {...profile} open={profileOpen} onOpenChange={onProfileOpenChange} />
       </div>
     </header>
   )

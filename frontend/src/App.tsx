@@ -26,6 +26,7 @@ function Console() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [auditVersion, setAuditVersion] = useState(0)
   const [database, setDatabase] = useState<string | null>("")
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const loadCases = useCallback(() => {
     fetchCases().then((data) => { setCases(data); setLoadError(null) }).catch((error: Error) => setLoadError(error.message))
@@ -47,7 +48,8 @@ function Console() {
 
   const submit: SubmitAction = useCallback(async (report, action, extra) => {
     if (!reviewer.trim()) {
-      toast.error("Add your name in the Reviewer card in the sidebar first, so the audit log shows who acted.")
+      setProfileOpen(true)
+      toast.error("Add your name first, so the audit log shows who acted.")
       return null
     }
     try {
@@ -81,8 +83,8 @@ function Console() {
     if (loadError) return <p className="rounded-xl bg-bad/10 p-4 text-sm text-bad">Could not load the cases: {loadError}. Check that the backend is running.</p>
     if (!cases) return <p className="text-muted-foreground">Loading cases…</p>
     if (page === "home") return <HomePage cases={cases} reviewer={reviewer} onNavigate={(target, id) => navigate(target, id)} />
-    if (page === "unreported") return <UnreportedPage cases={cases} />
-    if (page === "audit") return <AuditLogPage refreshKey={auditVersion} />
+    if (page === "unreported") return <UnreportedPage cases={cases} onNavigate={navigate} />
+    if (page === "audit") return <AuditLogPage cases={cases} refreshKey={auditVersion} onNavigate={navigate} />
     return <ReviewPage cases={cases} queue={page} selectedId={questionId} onSelect={(id) => navigate(page, id)} onSubmit={submit} />
   }
 
@@ -90,7 +92,8 @@ function Console() {
     <SidebarProvider defaultOpen className="h-svh overflow-hidden" style={SIDEBAR_SIZE}>
       <AppSidebar page={page} counts={counts} reviewer={reviewer} onReviewerChange={setReviewer} onNavigate={(target) => navigate(target)} />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <Topbar page={page} cases={cases ?? []} openReports={openReports} reviewer={reviewer} database={database} onNavigate={navigate} />
+        <Topbar page={page} cases={cases ?? []} openReports={openReports} reviewer={reviewer} database={database} profileOpen={profileOpen}
+          onProfileOpenChange={setProfileOpen} onReviewerChange={setReviewer} onNavigate={navigate} />
         {REVIEW_PAGES.includes(page) && cases ? (
           <div className="min-h-0 flex-1">{renderPage()}</div>
         ) : (

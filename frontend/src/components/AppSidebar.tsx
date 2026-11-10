@@ -1,7 +1,7 @@
 import { useTheme } from "next-themes"
 
 import { QuestionIcon, SidebarCollapseIcon, ToggleIcon } from "@/components/icons"
-import { Input } from "@/components/ui/input"
+import { ReviewerNameForm } from "@/components/ReviewerNameForm"
 import {
   Sidebar,
   SidebarContent,
@@ -63,21 +63,16 @@ function CollapseControl() {
   )
 }
 
-function ReviewerCard({ reviewer, onReviewerChange }: { reviewer: string; onReviewerChange: (name: string) => void }) {
+// Shown only until the teacher saves a name. After that, the name lives in the top bar profile.
+function ReviewerCard({ onReviewerChange }: { onReviewerChange: (name: string) => void }) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border bg-[linear-gradient(347deg,var(--promo-from)_47.58%,var(--promo-to)_306.43%)] p-4 group-data-[collapsible=icon]:hidden">
-      <span className="w-fit rounded-xl bg-primary px-2.5 py-1.5 text-xs font-medium tracking-tight text-primary-foreground">Reviewer</span>
+    <div className="mt-auto flex shrink-0 flex-col gap-3 rounded-2xl border bg-[linear-gradient(347deg,var(--promo-from)_47.58%,var(--promo-to)_306.43%)] p-4 group-data-[collapsible=icon]:hidden">
+      <span className="w-fit rounded-xl bg-primary px-2.5 py-1.5 text-xs font-medium tracking-tight text-primary-foreground">Start here</span>
       <div className="flex flex-col gap-1.5">
-        <p className="font-semibold tracking-tight">{reviewer.trim() ? reviewer : "Add your name"}</p>
-        <p className="text-sm tracking-tight text-muted-foreground">The audit log shows who approved each fix.</p>
+        <p className="font-semibold tracking-tight">Add your name</p>
+        <p className="text-sm tracking-tight text-muted-foreground">Each approve, edit and reject is saved with your name.</p>
       </div>
-      <Input
-        aria-label="Your name"
-        value={reviewer}
-        placeholder="e.g. Dr. Sharma"
-        onChange={(event) => onReviewerChange(event.target.value)}
-        className="h-11 rounded-xl bg-background px-3 dark:bg-background"
-      />
+      <ReviewerNameForm name="" onSave={onReviewerChange} />
     </div>
   )
 }
@@ -137,10 +132,10 @@ export function AppSidebar({ page, counts, reviewer, onReviewerChange, onNavigat
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+        {!reviewer.trim() && <ReviewerCard onReviewerChange={onReviewerChange} />}
       </SidebarContent>
 
-      <SidebarFooter className="gap-6 border-t border-sidebar-border px-3 py-3">
-        <ReviewerCard reviewer={reviewer} onReviewerChange={onReviewerChange} />
+      <SidebarFooter className="gap-4 border-t border-sidebar-border px-3 py-3">
         <SidebarMenu className="gap-2">
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Shortcuts" className={MENU_BUTTON} onClick={showShortcuts}>

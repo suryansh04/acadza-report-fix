@@ -31,9 +31,9 @@ function KeyChange({ label, before, after }: { label: string; before: string; af
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-xl bg-muted px-3 py-2.5">
       <span className="text-sm font-medium text-muted-foreground">{label}</span>
-      <span className="rounded-lg bg-bad/10 px-2.5 py-1 font-mono text-sm text-bad line-through">{before}</span>
+      <span className="rounded-lg bg-bad/10 px-2.5 py-1 font-mono text-sm font-semibold text-bad" title="Before">{before}</span>
       <ArrowRight className="size-4 text-muted-foreground" />
-      <span className="rounded-lg bg-good/15 px-2.5 py-1 font-mono text-sm font-semibold text-good">{after}</span>
+      <span className="rounded-lg bg-good/15 px-2.5 py-1 font-mono text-sm font-semibold text-good" title="After">{after}</span>
     </div>
   )
 }

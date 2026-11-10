@@ -59,7 +59,8 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Colors and sizes copied from the Watermelon UI Bionis dashboard (dashboard.css). */
+/* Colors and sizes copied from the Watermelon UI Bionis dashboard (dashboard.css).
+   Text colors (live, good, bad, period) are darker in light mode so they pass WCAG AA. */
 :root {
     --radius: 0.625rem;
     --background: oklch(1 0 0);
@@ -94,13 +95,13 @@
     --sidebar-border: #eeefe9;
     --sidebar-ring: oklch(0.708 0 0);
     --brand: #1975f2;
-    --live: #00b153;
-    --good: #269b6a;
+    --live: #00732f;
+    --good: #1d7a52;
     --warn: #9e6400;
     --warn-bg: #fef6e7;
-    --bad: #dd524d;
+    --bad: #c53030;
     --trend: #2c9c5d;
-    --period: color-mix(in srgb, var(--brand) 85%, white);
+    --period: #1360cc;
     --period-bg: color-mix(in srgb, var(--brand) 8%, transparent);
     --promo-from: #f7f9fc;
     --promo-to: #4d8dff;
@@ -139,6 +140,7 @@
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.556 0 0);
     --brand: #4d8dff;
+    --live: #22c55e;
     --good: #34d399;
     --warn: #f0b429;
     --warn-bg: rgb(240 180 41 / 12%);
