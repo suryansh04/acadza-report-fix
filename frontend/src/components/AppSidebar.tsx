@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { type Page, showShortcuts } from "@/lib/navigation"
+import type { Page } from "@/lib/navigation"
 import { NAV_GROUPS, PAGE_META } from "@/lib/pages"
 import { cn } from "@/lib/utils"
 
@@ -83,9 +83,10 @@ type AppSidebarProps = {
   reviewer: string
   onReviewerChange: (name: string) => void
   onNavigate: (page: Page) => void
+  onShowShortcuts: () => void
 }
 
-export function AppSidebar({ page, counts, reviewer, onReviewerChange, onNavigate }: AppSidebarProps) {
+export function AppSidebar({ page, counts, reviewer, onReviewerChange, onNavigate, onShowShortcuts }: AppSidebarProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const { state, isMobile, setOpenMobile } = useSidebar()
   const isDark = resolvedTheme === "dark"
@@ -138,7 +139,7 @@ export function AppSidebar({ page, counts, reviewer, onReviewerChange, onNavigat
       <SidebarFooter className="gap-4 border-t border-sidebar-border px-3 py-3">
         <SidebarMenu className="gap-2">
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Shortcuts" className={MENU_BUTTON} onClick={showShortcuts}>
+            <SidebarMenuButton tooltip="Shortcuts" className={MENU_BUTTON} onClick={onShowShortcuts}>
               <QuestionIcon />
               <span>Shortcuts</span>
             </SidebarMenuButton>

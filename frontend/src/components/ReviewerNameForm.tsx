@@ -25,7 +25,7 @@ export function ReviewerNameForm({ name, onSave, autoFocus = false }: ReviewerNa
         aria-label="Your name"
         value={draft}
         autoFocus={autoFocus}
-        placeholder="e.g. Dr. Sharma"
+        placeholder="e.g. Verma Sir"
         onChange={(event) => setDraft(event.target.value)}
         className="h-10 rounded-xl bg-background px-3 dark:bg-background"
       />

@@ -1,7 +1,8 @@
-import type { Case, Edit, Report } from "@/api"
+import type { ActionName, Case, Edit, Report } from "@/api"
 
 export type ReportState = "needs_you" | "auto_fixed" | "no_change" | "done"
 export type QueueName = "needs-you" | "auto-fixed" | "no-change"
+export type SessionStats = { decisions: number; startedAt: number | null }
 
 export const VERDICT_LABELS: Record<string, string> = {
   defect: "Real defect",
@@ -34,6 +35,8 @@ export const REPAIR_LABELS: Record<string, string> = {
   syllabus: "Syllabus",
 }
 
+export const ACTION_LABELS: Record<ActionName, string> = { approve: "Approved", edit: "Edited", reject: "Rejected", undo: "Undone" }
+
 export const FIELD_LABELS: Record<Edit["field"], string> = {
   question: "Question",
   solution: "Solution",
@@ -51,7 +54,27 @@ export function reportState(report: Report): ReportState {
 export function caseIsInQueue(item: Case, queue: QueueName): boolean {
   if (queue === "needs-you") return item.reports.some((report) => reportState(report) === "needs_you")
   if (queue === "auto-fixed") return item.reports.some((report) => report.route === "auto_apply")
-  return item.reports.every((report) => report.route === "no_change")
+  // Questions with no student report exist only for unreported defects, so they are not in any review queue.
+  return item.reports.length > 0 && item.reports.every((report) => report.route === "no_change")
+}
+
+// The route a queue is about. Bulk actions and progress use only these reports, so "Keep all fixes"
+// can never approve a report on the same question that still waits for a teacher.
+const QUEUE_ROUTE: Record<QueueName, Report["route"]> = { "needs-you": "faculty_review", "auto-fixed": "auto_apply", "no-change": "no_change" }
+
+export function caseIsFinished(item: Case, queue: QueueName): boolean {
+  return item.reports.filter((report) => report.route === QUEUE_ROUTE[queue]).every((report) => report.teacher_action)
+}
+
+export function queueReports(cases: Case[], queue: QueueName): Report[] {
+  // Finished questions leave "Needs you", so its progress counts every question.
+  const source = queue === "needs-you" ? cases : casesInQueue(cases, queue)
+  return source.flatMap((item) => item.reports).filter((report) => report.route === QUEUE_ROUTE[queue])
+}
+
+export function estimateReviewMinutes(reportCount: number): number {
+  // About 30 seconds per report with the keyboard flow.
+  return Math.max(1, Math.ceil(reportCount / 2))
 }
 
 export function queueForCase(item: Case): QueueName {

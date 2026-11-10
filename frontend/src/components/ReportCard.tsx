@@ -7,7 +7,8 @@ import { IconChip, Pill, type Tone } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { Textarea } from "@/components/ui/textarea"
-import { FIELD_LABELS, REPAIR_LABELS, VERDICT_LABELS, formatDateTime, reportState, stripHtml } from "@/lib/cases"
+import { ACTION_LABELS, FIELD_LABELS, REPAIR_LABELS, VERDICT_LABELS, formatDateTime, reportState, stripHtml } from "@/lib/cases"
+import { shouldIgnoreShortcut } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
 export type SubmitAction = (report: Report, action: ActionName, extra?: { edits?: Edit[]; reply?: string; saveAnyway?: boolean }) => Promise<ActionResult | null>
@@ -22,6 +23,15 @@ const BUTTON_LABELS = {
   needs_you: { approve: "Approve", reject: "Reject" },
   auto_fixed: { approve: "Keep fix", reject: "Undo fix" },
   no_change: { approve: "Agree", reject: "Disagree" },
+}
+
+// One plain sentence on top of each report, so a tired teacher knows what "Approve" will do before reading the details.
+function suggestionFor(report: Report): string {
+  const repair = report.repair ? REPAIR_LABELS[report.repair] ?? report.repair : null
+  if (report.route === "auto_apply") return `Fixed automatically: ${repair}. Keep the fix, or undo it.`
+  if (report.route === "no_change") return `No change needed: ${VERDICT_LABELS[report.verdict] ?? report.verdict}. Agree to send the reply.`
+  if (report.edits.length > 0) return `Suggested fix: ${repair}. Approve to apply it, or edit it first.`
+  return `A teacher must fix this${repair ? ` (${repair})` : ""}. Approve to confirm and send the reply.`
 }
 
 function ConfidenceMeter({ value }: { value: number }) {
@@ -44,7 +54,7 @@ function EditSummary({ edit }: { edit: Edit }) {
       <span className="text-xs text-muted-foreground">{FIELD_LABELS[edit.field]}</span>
       <span className="min-w-0 wrap-break-word">
         <del className="rounded bg-background px-1 text-bad">{before || "(nothing)"}</del>
-        <span className="mx-1.5 text-muted-foreground">to</span>
+        <span className="mx-1.5 text-muted-foreground" aria-label="changed to">→</span>
         <ins className="rounded bg-background px-1 font-medium text-good no-underline">{after || "(removed)"}</ins>
       </span>
     </div>
@@ -85,7 +95,7 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
   useEffect(() => {
     if (!focused || state === "done" || editing) return
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.metaKey || event.ctrlKey) return
+      if (shouldIgnoreShortcut(event)) return
       const key = event.key.toLowerCase()
       if (key === "a") void submit("approve")
       if (key === "r") void submit("reject")
@@ -111,6 +121,8 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
         {report.repair && <Pill tone="muted">{REPAIR_LABELS[report.repair] ?? report.repair}</Pill>}
         <span className="ml-auto"><ConfidenceMeter value={report.confidence} /></span>
       </header>
+
+      {state !== "done" && <p className="text-[15px] font-medium">{suggestionFor(report)}</p>}
 
       <blockquote className="flex gap-2 rounded-xl bg-muted p-3 text-sm">
         <MessageSquareQuote className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
@@ -186,7 +198,7 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
         {state === "done" && report.teacher_action && (
           <>
             <span className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground capitalize">{report.teacher_action.action}</span> by {report.teacher_action.reviewer} ·{" "}
+              <span className="font-medium text-foreground">{ACTION_LABELS[report.teacher_action.action]}</span> by {report.teacher_action.reviewer} ·{" "}
               {formatDateTime(report.teacher_action.created_at)}
             </span>
             <Button className="h-9 rounded-lg px-3" variant="ghost" disabled={busy} onClick={() => submit("undo")}><RotateCcw /> Undo</Button>

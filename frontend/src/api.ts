@@ -123,3 +123,12 @@ export async function saveAction(request: ActionRequest): Promise<ActionResult> 
   }
   return { saved: true, entry: await readJson<TeacherAction>(response) }
 }
+
+export async function saveBulkAction(reportIds: string[], action: "approve" | "undo", reviewer: string): Promise<TeacherAction[]> {
+  const response = await fetch("/api/actions/bulk", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ report_ids: reportIds, action, reviewer }),
+  })
+  return readJson<TeacherAction[]>(response)
+}

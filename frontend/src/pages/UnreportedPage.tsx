@@ -28,7 +28,7 @@ export function UnreportedPage({ cases, onNavigate }: { cases: Case[]; onNavigat
                 <p key={editIndex} className="wrap-break-word">
                   <span className="text-[13px] text-muted-foreground">Suggested fix in the {FIELD_LABELS[edit.field].toLowerCase()}: </span>
                   <del className="rounded bg-background px-1 text-bad">{stripHtml(edit.find)}</del>
-                  <span className="mx-1.5 text-muted-foreground">to</span>
+                  <span className="mx-1.5 text-muted-foreground" aria-label="changed to">→</span>
                   <ins className="rounded bg-background px-1 font-medium text-good no-underline">{stripHtml(edit.replace) || "(removed)"}</ins>
                 </p>
               ))}

@@ -1,9 +1,10 @@
-import { CheckCheck, CircleCheck, Inbox, ListOrdered, OctagonAlert, Scale, SearchCheck, Sparkles, TriangleAlert, Wrench } from "lucide-react"
+import { ArrowRight, CheckCheck, CircleCheck, Inbox, ListOrdered, OctagonAlert, Scale, SearchCheck, Sparkles, TriangleAlert, Wrench } from "lucide-react"
 
 import type { Case } from "@/api"
 import { TrendUpIcon } from "@/components/icons"
 import { IconChip, Panel, Pill } from "@/components/Panel"
-import { REPAIR_LABELS, VERDICT_LABELS, casesInQueue, greetingForNow, reportState, stripHtml } from "@/lib/cases"
+import { Button } from "@/components/ui/button"
+import { REPAIR_LABELS, VERDICT_LABELS, casesInQueue, estimateReviewMinutes, greetingForNow, reportState, stripHtml } from "@/lib/cases"
 import type { Page } from "@/lib/navigation"
 import type { IconComponent } from "@/lib/pages"
 import { cn } from "@/lib/utils"
@@ -97,6 +98,15 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
               {keysFixed === 1 ? "was" : "were"} fixed automatically after three independent answers agreed.
             </p>
           </div>
+          {openReports > 0 ? (
+            <Button className="h-11 w-fit gap-2 rounded-xl px-4 text-sm" onClick={() => onNavigate("needs-you")}>
+              Start reviewing <span className="font-normal opacity-70">· about {estimateReviewMinutes(openReports)} min</span> <ArrowRight className="size-4" />
+            </Button>
+          ) : (
+            <Button variant="outline" className="h-11 w-fit gap-2 rounded-xl px-4 text-sm" onClick={() => onNavigate("auto-fixed")}>
+              Check the auto-fixes <ArrowRight className="size-4" />
+            </Button>
+          )}
         </div>
         <div className="flex flex-1 items-center justify-center">
           <ScoreRing value={progress} label="Reviewed" />

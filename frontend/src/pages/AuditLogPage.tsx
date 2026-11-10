@@ -3,15 +3,10 @@ import { ScrollText } from "lucide-react"
 
 import { type Case, type TeacherAction, fetchAuditLog } from "@/api"
 import { Pill, type Tone } from "@/components/Panel"
-import { FIELD_LABELS, formatDateTime, queueForCase } from "@/lib/cases"
+import { ACTION_LABELS, FIELD_LABELS, formatDateTime, queueForCase } from "@/lib/cases"
 import type { Page } from "@/lib/navigation"
 
-const ACTIONS: Record<TeacherAction["action"], { label: string; tone: Tone }> = {
-  approve: { label: "Approved", tone: "good" },
-  edit: { label: "Edited", tone: "info" },
-  reject: { label: "Rejected", tone: "bad" },
-  undo: { label: "Undone", tone: "muted" },
-}
+const ACTION_TONES: Record<TeacherAction["action"], Tone> = { approve: "good", edit: "info", reject: "bad", undo: "muted" }
 
 function describeAction(entry: TeacherAction): string {
   if (entry.action === "approve") return "Kept the engine's decision."
@@ -59,7 +54,6 @@ export function AuditLogPage({ cases, refreshKey, onNavigate }: AuditLogPageProp
             <tbody className="divide-y">
               {entries.map((entry) => {
                 const item = caseById.get(entry.question_id)
-                const action = ACTIONS[entry.action]
                 return (
                   <tr key={entry.id} className="align-top">
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground tabular-nums">{formatDateTime(entry.created_at)}</td>
@@ -72,7 +66,7 @@ export function AuditLogPage({ cases, refreshKey, onNavigate }: AuditLogPageProp
                         </button>
                       ) : entry.report_id}
                     </td>
-                    <td className="px-4 py-3"><Pill tone={action.tone}>{action.label}</Pill></td>
+                    <td className="px-4 py-3"><Pill tone={ACTION_TONES[entry.action]}>{ACTION_LABELS[entry.action]}</Pill></td>
                     <td className="px-4 py-3 text-muted-foreground">{describeAction(entry)}</td>
                   </tr>
                 )
