@@ -76,9 +76,11 @@ export type Case = {
   urgency: number
 }
 
+export type DecisionName = Exclude<ActionName, "undo">
+
 export type ActionRequest = {
   report_id: string
-  action: ActionName
+  action: DecisionName
   reviewer: string
   edits?: Edit[]
   reply?: string
@@ -88,12 +90,20 @@ export type ActionRequest = {
 
 export type ActionResult = { saved: true; entry: TeacherAction } | { saved: false; warnings: string[] }
 
+/** The server refused because the data changed meanwhile, for example a second tab already decided this report. */
+export class ConflictError extends Error {}
+
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new Error(typeof body.detail === "string" ? body.detail : `The server answered ${response.status}.`)
+    const message = typeof body.detail === "string" ? body.detail : `The server answered ${response.status}.`
+    throw response.status === 409 ? new ConflictError(message) : new Error(message)
   }
   return response.json()
+}
+
+function postJson(url: string, body: unknown): Promise<Response> {
+  return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
 }
 
 export function fetchCases(): Promise<Case[]> {
@@ -111,24 +121,20 @@ export function fetchAuditLog(): Promise<TeacherAction[]> {
 }
 
 export async function saveAction(request: ActionRequest): Promise<ActionResult> {
-  const response = await fetch("/api/actions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  })
-  // 409 means the edit has format warnings. The teacher can still save it on purpose.
+  const response = await postJson("/api/actions", request)
+  // A 409 with warnings means the edit has format problems. The teacher can still save it on purpose.
   if (response.status === 409) {
-    const body = await response.json()
-    return { saved: false, warnings: body.detail.warnings }
+    const body = await response.clone().json().catch(() => ({}))
+    if (Array.isArray(body.detail?.warnings)) return { saved: false, warnings: body.detail.warnings }
   }
   return { saved: true, entry: await readJson<TeacherAction>(response) }
 }
 
-export async function saveBulkAction(reportIds: string[], action: "approve" | "undo", reviewer: string): Promise<TeacherAction[]> {
-  const response = await fetch("/api/actions/bulk", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ report_ids: reportIds, action, reviewer }),
-  })
-  return readJson<TeacherAction[]>(response)
+export async function approveMany(reportIds: string[], reviewer: string): Promise<TeacherAction[]> {
+  return readJson<TeacherAction[]>(await postJson("/api/actions/bulk", { report_ids: reportIds, reviewer }))
+}
+
+/** Undo decisions by their audit entry id. The server skips any that were already undone or replaced. */
+export async function undoDecisions(entryIds: number[], reviewer: string): Promise<TeacherAction[]> {
+  return readJson<TeacherAction[]>(await postJson("/api/actions/undo", { entry_ids: entryIds, reviewer }))
 }

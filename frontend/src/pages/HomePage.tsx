@@ -4,7 +4,8 @@ import type { Case } from "@/api"
 import { TrendUpIcon } from "@/components/icons"
 import { IconChip, Panel, Pill } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
-import { REPAIR_LABELS, VERDICT_LABELS, casesInQueue, estimateReviewMinutes, greetingForNow, reportState, stripHtml } from "@/lib/cases"
+import { REPAIR_LABELS, VERDICT_LABELS, casesInQueue, countOpenReports, countUnreported, estimateReviewMinutes, greetingForNow, reportState } from "@/lib/cases"
+import { stripHtml } from "@/lib/html"
 import type { Page } from "@/lib/navigation"
 import type { IconComponent } from "@/lib/pages"
 import { cn } from "@/lib/utils"
@@ -69,11 +70,11 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
   const needsYou = casesInQueue(cases, "needs-you")
   const teacherReports = reports.filter((report) => report.route === "faculty_review")
   const teacherDone = teacherReports.filter((report) => report.teacher_action).length
-  const openReports = reports.filter((report) => reportState(report) === "needs_you").length
+  const openReports = countOpenReports(cases)
   const autoFixed = reports.filter((report) => report.route === "auto_apply").length
   const keysFixed = new Set(reports.filter((report) => report.route === "auto_apply" && report.repair === "answer_key").map((report) => report.question_id)).size
   const studentWrong = reports.filter((report) => report.verdict === "no_error").length
-  const unreported = cases.reduce((total, item) => total + item.other_defects.length, 0)
+  const unreported = countUnreported(cases)
   const progress = teacherReports.length === 0 ? 100 : Math.round((teacherDone / teacherReports.length) * 100)
   const firstName = reviewer.trim().split(/\s+/)[0]
 

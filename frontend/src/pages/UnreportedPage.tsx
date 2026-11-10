@@ -2,9 +2,10 @@ import { ArrowRight, SearchCheck } from "lucide-react"
 
 import type { Case } from "@/api"
 import { MathHtml } from "@/components/ChangePreview"
+import { EditDiff } from "@/components/EditDiff"
 import { Panel, Pill } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
-import { FIELD_LABELS, REPAIR_LABELS, queueForCase, stripHtml } from "@/lib/cases"
+import { REPAIR_LABELS, queueForCase } from "@/lib/cases"
 import type { Page } from "@/lib/navigation"
 
 export function UnreportedPage({ cases, onNavigate }: { cases: Case[]; onNavigate: (page: Page, questionId: string) => void }) {
@@ -22,16 +23,9 @@ export function UnreportedPage({ cases, onNavigate }: { cases: Case[]; onNavigat
         <Panel key={item.questionId} icon={SearchCheck} color="var(--tone-cyan)" title={`${item.subject} · ${item.chapter}`} badge={<Pill tone="muted" className="font-mono">{item.questionId}</Pill>}>
           <MathHtml html={item.before.question_html} className="rounded-xl bg-muted p-4 text-sm" />
           {item.other_defects.map((defect, index) => (
-            <div key={index} className="flex flex-col gap-2 rounded-xl bg-warn-bg p-3 text-sm">
+            <div key={index} className="flex flex-col gap-2 text-sm">
               <p className="max-w-[65ch]"><span className="font-medium text-warn">{REPAIR_LABELS[defect.repair] ?? defect.repair}: </span>{defect.evidence}</p>
-              {defect.edits.map((edit, editIndex) => (
-                <p key={editIndex} className="wrap-break-word">
-                  <span className="text-[13px] text-muted-foreground">Suggested fix in the {FIELD_LABELS[edit.field].toLowerCase()}: </span>
-                  <del className="rounded bg-background px-1 text-bad">{stripHtml(edit.find)}</del>
-                  <span className="mx-1.5 text-muted-foreground" aria-label="changed to">→</span>
-                  <ins className="rounded bg-background px-1 font-medium text-good no-underline">{stripHtml(edit.replace) || "(removed)"}</ins>
-                </p>
-              ))}
+              {defect.edits.map((edit, editIndex) => <EditDiff key={editIndex} edit={edit} />)}
             </div>
           ))}
           <Button variant="outline" className="h-9 w-fit rounded-lg px-3" onClick={() => onNavigate(queueForCase(item), item.questionId)}>

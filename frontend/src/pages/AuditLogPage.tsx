@@ -1,20 +1,33 @@
 import { useEffect, useMemo, useState } from "react"
 import { ScrollText } from "lucide-react"
 
-import { type Case, type TeacherAction, fetchAuditLog } from "@/api"
+import { type Case, type Report, type TeacherAction, fetchAuditLog } from "@/api"
 import { Pill, type Tone } from "@/components/Panel"
-import { ACTION_LABELS, FIELD_LABELS, formatDateTime, queueForCase } from "@/lib/cases"
+import { ACTION_LABELS, FIELD_LABELS, editKey, formatDateTime, queueForCase } from "@/lib/cases"
 import type { Page } from "@/lib/navigation"
 
 const ACTION_TONES: Record<TeacherAction["action"], Tone> = { approve: "good", edit: "info", reject: "bad", undo: "muted" }
 
-function describeAction(entry: TeacherAction): string {
+function fieldNames(edits: TeacherAction["edits"]): string[] {
+  return [...new Set(edits.map((edit) => FIELD_LABELS[edit.field]))]
+}
+
+/** What the teacher did, compared with what the engine proposed. An edit always saves the full fix, so only real differences count. */
+function describeAction(entry: TeacherAction, report: Report | undefined): string {
   if (entry.action === "approve") return "Kept the engine's decision."
   if (entry.action === "reject") return "Turned down the engine's decision."
-  if (entry.action === "undo") return "Cancelled the previous action."
-  const changed = entry.edits.map((edit) => FIELD_LABELS[edit.field])
-  if (entry.reply) changed.push("Reply")
-  return changed.length > 0 ? `Changed: ${changed.join(", ")}.` : "Saved without changes."
+  if (entry.action === "undo") return entry.note || "Cancelled the previous decision."
+  const proposed = report?.edits ?? []
+  const proposedKeys = new Set(proposed.map(editKey))
+  const savedKeys = new Set(entry.edits.map(editKey))
+  const changed = fieldNames(entry.edits.filter((edit) => !proposedKeys.has(editKey(edit))))
+  const dropped = fieldNames(proposed.filter((edit) => !savedKeys.has(editKey(edit)))).filter((field) => !changed.includes(field))
+  const parts = [
+    changed.length > 0 && `Changed: ${changed.join(", ")}.`,
+    dropped.length > 0 && `Removed the suggested fix to: ${dropped.join(", ")}.`,
+    report && entry.reply.trim() && entry.reply !== report.reply && "Rewrote the reply.",
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(" ") : "Kept the suggested fix and reply."
 }
 
 type AuditLogPageProps = { cases: Case[]; refreshKey: number; onNavigate: (page: Page, questionId: string) => void }
@@ -23,9 +36,21 @@ export function AuditLogPage({ cases, refreshKey, onNavigate }: AuditLogPageProp
   const [entries, setEntries] = useState<TeacherAction[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const caseById = useMemo(() => new Map(cases.map((item) => [item.questionId, item])), [cases])
+  const reportById = useMemo(() => new Map(cases.flatMap((item) => item.reports).map((report) => [report.report_id, report])), [cases])
 
   useEffect(() => {
-    fetchAuditLog().then(setEntries).catch((reason: Error) => setError(reason.message))
+    // Ignore an answer that arrives after a newer request started, so an old list never replaces a new one.
+    let latest = true
+    fetchAuditLog()
+      .then((data) => {
+        if (!latest) return
+        setEntries(data)
+        setError(null)
+      })
+      .catch((reason: Error) => latest && setError(reason.message))
+    return () => {
+      latest = false
+    }
   }, [refreshKey])
 
   return (
@@ -67,7 +92,7 @@ export function AuditLogPage({ cases, refreshKey, onNavigate }: AuditLogPageProp
                       ) : entry.report_id}
                     </td>
                     <td className="px-4 py-3"><Pill tone={ACTION_TONES[entry.action]}>{ACTION_LABELS[entry.action]}</Pill></td>
-                    <td className="px-4 py-3 text-muted-foreground">{describeAction(entry)}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{describeAction(entry, reportById.get(entry.report_id))}</td>
                   </tr>
                 )
               })}

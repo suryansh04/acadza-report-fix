@@ -35,6 +35,8 @@ export const REPAIR_LABELS: Record<string, string> = {
   syllabus: "Syllabus",
 }
 
+export const QUESTION_TYPE_LABELS: Record<string, string> = { scq: "Single correct", mcq: "Multiple correct", integerQuestion: "Integer" }
+
 export const ACTION_LABELS: Record<ActionName, string> = { approve: "Approved", edit: "Edited", reject: "Rejected", undo: "Undone" }
 
 export const FIELD_LABELS: Record<Edit["field"], string> = {
@@ -77,6 +79,26 @@ export function estimateReviewMinutes(reportCount: number): number {
   return Math.max(1, Math.ceil(reportCount / 2))
 }
 
+export function editKey(edit: Edit): string {
+  return `${edit.field}|${edit.find}|${edit.replace}`
+}
+
+/** The edits live now: the teacher's own edit, none after a reject, otherwise the engine's. */
+export function editsInEffect(report: Report): Edit[] {
+  const decision = report.teacher_action
+  if (decision?.action === "edit") return decision.edits
+  if (decision?.action === "reject") return []
+  return report.edits
+}
+
+export function countOpenReports(cases: Case[]): number {
+  return cases.flatMap((item) => item.reports).filter((report) => reportState(report) === "needs_you").length
+}
+
+export function countUnreported(cases: Case[]): number {
+  return cases.reduce((total, item) => total + item.other_defects.length, 0)
+}
+
 export function queueForCase(item: Case): QueueName {
   if (caseIsInQueue(item, "needs-you")) return "needs-you"
   return item.reports.some((report) => report.route === "auto_apply") ? "auto-fixed" : "no-change"
@@ -86,38 +108,9 @@ export function casesInQueue(cases: Case[], queue: QueueName): Case[] {
   return cases.filter((item) => caseIsInQueue(item, queue)).sort((a, b) => b.urgency - a.urgency)
 }
 
-export function stripHtml(html: string): string {
-  const element = document.createElement("div")
-  element.innerHTML = html
-  return (element.textContent ?? "").replace(/\s+/g, " ").trim()
-}
-
 export function formatAnswer(answer: string | string[] | null | undefined): string {
   if (Array.isArray(answer)) return answer.join(", ")
   return answer ?? "-"
-}
-
-function normalizeLineBreaks(text: string): string {
-  return text.replace(/\r\n/g, "\n")
-}
-
-// Wrapping text inside MathML in <del>/<ins> breaks the formula, so those edits show without a highlight.
-function canHighlight(text: string): boolean {
-  return !/<\/?m[a-z]/.test(text)
-}
-
-/** Rendered "before" or "after" HTML for one field, with the changed text marked. */
-export function buildDiffHtml(raw: string, edits: Edit[], field: "question" | "solution", side: "before" | "after"): string {
-  let html = normalizeLineBreaks(raw)
-  for (const edit of edits.filter((item) => item.field === field)) {
-    const find = normalizeLineBreaks(edit.find)
-    if (!find || !html.includes(find)) continue
-    const marked = side === "before"
-      ? (canHighlight(find) ? `<del class="diff-del">${find}</del>` : find)
-      : (canHighlight(edit.replace) ? `<ins class="diff-ins">${edit.replace}</ins>` : edit.replace)
-    html = html.replace(find, () => marked)
-  }
-  return html
 }
 
 export function greetingForNow(): string {

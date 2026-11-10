@@ -1,7 +1,7 @@
-import { useEffect } from "react"
 import { X } from "lucide-react"
 
 import { Kbd } from "@/components/ui/kbd"
+import { useKeydown } from "@/hooks/use-keydown"
 
 const SHORTCUTS: { keys: string[]; action: string }[] = [
   { keys: ["J"], action: "Next question" },
@@ -17,13 +17,9 @@ const SHORTCUTS: { keys: string[]; action: string }[] = [
 ]
 
 export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" || event.key === "?") onClose()
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [onClose])
+  useKeydown((event) => {
+    if (event.key === "Escape" || event.key === "?") onClose()
+  })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 animate-in fade-in" onClick={onClose}>

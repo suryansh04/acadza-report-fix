@@ -2,7 +2,7 @@ import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState }
 import { ThemeProvider } from "next-themes"
 import { toast } from "sonner"
 
-import { type Case, type Report, type TeacherAction, fetchCases, fetchHealth, saveAction, saveBulkAction } from "@/api"
+import { type Case, ConflictError, type Report, type TeacherAction, approveMany, fetchCases, fetchHealth, saveAction, undoDecisions } from "@/api"
 import { AppSidebar } from "@/components/AppSidebar"
 import type { SubmitAction } from "@/components/ReportCard"
 import { ShortcutsDialog } from "@/components/ShortcutsDialog"
@@ -12,7 +12,8 @@ import { Topbar } from "@/components/Topbar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { ACTION_LABELS, type SessionStats, caseIsFinished, casesInQueue, reportState } from "@/lib/cases"
+import { useKeydown } from "@/hooks/use-keydown"
+import { ACTION_LABELS, type SessionStats, caseIsFinished, casesInQueue, countOpenReports, countUnreported } from "@/lib/cases"
 import { type Page, shouldIgnoreShortcut, useLocation, useReviewerName, useSoundOn } from "@/lib/navigation"
 import { AuditLogPage } from "@/pages/AuditLogPage"
 import { HomePage } from "@/pages/HomePage"
@@ -34,23 +35,28 @@ function Console({ soundOn, onSoundChange }: { soundOn: boolean; onSoundChange: 
   const [profileOpen, setProfileOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [session, setSession] = useState<SessionStats>({ decisions: 0, startedAt: null })
-  // The reports of the last decision, so U can undo it from anywhere.
-  const lastDecision = useRef<Report[] | null>(null)
+  // The decisions saved last, so U can undo them from anywhere. Undo goes by entry id, so it never cancels a newer decision.
+  const lastDecision = useRef<TeacherAction[]>([])
   // A short rising chime when a review is saved. Undo stays silent.
   const { play: playSuccess } = usePlaySound({ sound: "notification.success" })
 
-  useEffect(() => {
-    fetchCases().then(setCases).catch((error: Error) => setLoadError(error.message))
-    fetchHealth().then((health) => setDatabase(health.database)).catch(() => setDatabase(null))
+  const loadCases = useCallback(() => {
+    fetchCases()
+      .then((data) => {
+        setCases(data)
+        setLoadError(null)
+      })
+      .catch((error: Error) => setLoadError(error.message))
   }, [])
 
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "?" && !shouldIgnoreShortcut(event)) setShortcutsOpen(true)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+    loadCases()
+    fetchHealth().then((health) => setDatabase(health.database)).catch(() => setDatabase(null))
+  }, [loadCases])
+
+  useKeydown((event) => {
+    if (event.key === "?" && !shouldIgnoreShortcut(event)) setShortcutsOpen(true)
+  })
 
   // The server answer is the new state of each report, so the screen updates without reloading every case.
   const applyDecisions = useCallback((decisions: Map<string, TeacherAction | null>, change: number) => {
@@ -69,80 +75,84 @@ function Console({ soundOn, onSoundChange }: { soundOn: boolean; onSoundChange: 
     return false
   }, [reviewer])
 
-  const undo = useCallback(async (reports: Report[]): Promise<TeacherAction[] | null> => {
-    if (!hasReviewer()) return null
+  // A conflict means another tab or teacher changed the data. Show the error and reload, so the screen is true again.
+  const reportFailure = useCallback((error: unknown, what: string) => {
+    toast.error(`Could not ${what}: ${(error as Error).message}`)
+    if (error instanceof ConflictError) loadCases()
+  }, [loadCases])
+
+  const undo = useCallback(async (decisions: TeacherAction[]): Promise<TeacherAction[] | null> => {
+    if (decisions.length === 0 || !hasReviewer()) return null
     try {
-      const entries = await saveBulkAction(reports.map((report) => report.report_id), "undo", reviewer)
+      const entries = await undoDecisions(decisions.map((decision) => decision.id), reviewer)
       applyDecisions(new Map(entries.map((entry) => [entry.report_id, null])), -entries.length)
-      lastDecision.current = null
+      const undone = new Set(entries.map((entry) => entry.report_id))
+      lastDecision.current = lastDecision.current.filter((decision) => !undone.has(decision.report_id))
       toast(entries.length === 1 ? `${entries[0].report_id}: undone. It is open again.` : `${entries.length} decisions undone.`)
       return entries
     } catch (error) {
-      toast.error(`Could not undo: ${(error as Error).message}`)
+      reportFailure(error, "undo")
       return null
     }
-  }, [reviewer, hasReviewer, applyDecisions])
+  }, [reviewer, hasReviewer, applyDecisions, reportFailure])
 
   const submit: SubmitAction = useCallback(async (report, action, extra) => {
     if (action === "undo") {
-      const entries = await undo([report])
+      const entries = report.teacher_action ? await undo([report.teacher_action]) : null
       return entries ? { saved: true, entry: entries[0] } : null
     }
     if (!hasReviewer()) return null
     try {
       const result = await saveAction({ report_id: report.report_id, action, reviewer, edits: extra?.edits, reply: extra?.reply, save_anyway: extra?.saveAnyway })
       if (!result.saved) return result
-      applyDecisions(new Map([[report.report_id, result.entry]]), 1)
-      lastDecision.current = [report]
+      const decision = result.entry
+      applyDecisions(new Map([[report.report_id, decision]]), 1)
+      lastDecision.current = [decision]
       playSuccess()
-      toast.success(`${report.report_id}: ${ACTION_LABELS[action].toLowerCase()}`, { action: { label: "Undo", onClick: () => void undo([report]) } })
+      toast.success(`${report.report_id}: ${ACTION_LABELS[action].toLowerCase()}`, { action: { label: "Undo", onClick: () => void undo([decision]) } })
       return result
     } catch (error) {
-      toast.error(`Could not save: ${(error as Error).message}`)
+      reportFailure(error, "save")
       return null
     }
-  }, [reviewer, hasReviewer, applyDecisions, undo, playSuccess])
+  }, [reviewer, hasReviewer, applyDecisions, undo, playSuccess, reportFailure])
 
   const confirmAll: ConfirmAll = useCallback(async (reports) => {
     if (reports.length === 0 || !hasReviewer()) return false
     try {
-      const entries = await saveBulkAction(reports.map((report) => report.report_id), "approve", reviewer)
+      const entries = await approveMany(reports.map((report) => report.report_id), reviewer)
       applyDecisions(new Map(entries.map((entry) => [entry.report_id, entry])), entries.length)
-      lastDecision.current = reports
+      lastDecision.current = entries
       playSuccess()
-      toast.success(`${entries.length} reports confirmed`, { action: { label: "Undo all", onClick: () => void undo(reports) } })
+      toast.success(`${entries.length} reports confirmed`, { action: { label: "Undo all", onClick: () => void undo(entries) } })
       return true
     } catch (error) {
-      toast.error(`Could not save: ${(error as Error).message}`)
+      reportFailure(error, "save")
       return false
     }
-  }, [reviewer, hasReviewer, applyDecisions, undo, playSuccess])
+  }, [reviewer, hasReviewer, applyDecisions, undo, playSuccess, reportFailure])
 
   const { page, questionId } = location
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== "u" || shouldIgnoreShortcut(event)) return
-      const last = lastDecision.current
-      if (!last) {
-        toast("Nothing to undo yet.")
-        return
-      }
-      void undo(last)
-      if (last.length === 1 && REVIEW_PAGES.includes(page)) navigate(page, last[0].question_id)
+  useKeydown((event) => {
+    if (event.key.toLowerCase() !== "u" || event.repeat || shouldIgnoreShortcut(event)) return
+    const last = lastDecision.current
+    if (last.length === 0) {
+      toast("Nothing to undo yet.")
+      return
     }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [undo, page, navigate])
+    void undo(last)
+    if (last.length === 1 && REVIEW_PAGES.includes(page)) navigate(page, last[0].question_id)
+  })
 
   const counts = useMemo(() => ({
     // Questions still open in each queue, so the badges count down like an inbox.
     "needs-you": cases ? casesInQueue(cases, "needs-you").length : 0,
     "auto-fixed": cases ? casesInQueue(cases, "auto-fixed").filter((item) => !caseIsFinished(item, "auto-fixed")).length : 0,
     "no-change": cases ? casesInQueue(cases, "no-change").filter((item) => !caseIsFinished(item, "no-change")).length : 0,
-    unreported: cases ? cases.reduce((total, item) => total + item.other_defects.length, 0) : 0,
+    unreported: cases ? countUnreported(cases) : 0,
   }), [cases])
-  const openReports = cases ? cases.flatMap((item) => item.reports).filter((report) => reportState(report) === "needs_you").length : 0
+  const openReports = cases ? countOpenReports(cases) : 0
 
   const renderPage = () => {
     if (loadError) return <p className="rounded-xl bg-bad/10 p-4 text-sm text-bad">Could not load the cases: {loadError}. Check that the backend is running.</p>

@@ -1,12 +1,13 @@
 import { ArrowRight } from "lucide-react"
 
 import type { Case, Edit } from "@/api"
-import { buildDiffHtml, formatAnswer } from "@/lib/cases"
+import { formatAnswer } from "@/lib/cases"
+import { buildDiffHtml, sanitizeHtml } from "@/lib/html"
 import { cn } from "@/lib/utils"
 
 export function MathHtml({ html, className }: { html: string; className?: string }) {
-  // The HTML is Acadza's own question content. MathML inside it renders natively in the browser.
-  return <div className={cn("question-html", className)} dangerouslySetInnerHTML={{ __html: html }} />
+  // MathML renders natively in the browser. sanitizeHtml removes scripts and event handlers first.
+  return <div className={cn("question-html", className)} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
 }
 
 function SideBySide({ label, before, after }: { label: string; before: string; after: string }) {

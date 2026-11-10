@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { UserRound, Volume2, VolumeX } from "lucide-react"
 
 import type { Case } from "@/api"
@@ -6,7 +6,9 @@ import { BellIcon, SearchIcon } from "@/components/icons"
 import { ReviewerNameForm } from "@/components/ReviewerNameForm"
 import { Button } from "@/components/ui/button"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { queueForCase, stripHtml } from "@/lib/cases"
+import { useKeydown } from "@/hooks/use-keydown"
+import { queueForCase } from "@/lib/cases"
+import { stripHtml } from "@/lib/html"
 import type { Page } from "@/lib/navigation"
 import { PAGE_META } from "@/lib/pages"
 
@@ -23,16 +25,12 @@ function CaseSearch({ cases, onOpen }: { cases: Case[]; onOpen: (item: Case) => 
   const needle = query.trim().toLowerCase()
   const matches = needle ? index.filter((entry) => entry.text.includes(needle)).slice(0, MAX_RESULTS).map((entry) => entry.item) : []
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault()
-        inputRef.current?.focus()
-      }
+  useKeydown((event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      event.preventDefault()
+      inputRef.current?.focus()
     }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  })
 
   const choose = (item: Case) => {
     onOpen(item)
@@ -97,14 +95,9 @@ function ProfileMenu({ reviewer, database, open, onOpenChange, onReviewerChange 
   const databaseText = database === null ? "Server offline" : ({ "": "Connecting…", supabase: "Saved to Supabase" }[database] ?? "Saved locally")
   const databaseTone = database === null ? "text-bad" : "text-live"
 
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onOpenChange(false)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [open, onOpenChange])
+  useKeydown((event) => {
+    if (event.key === "Escape") onOpenChange(false)
+  }, open)
 
   return (
     <div className="relative">

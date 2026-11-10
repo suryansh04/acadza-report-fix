@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react"
+import { useRef, useState } from "react"
 import { Check, CheckCheck, Inbox, MessageSquareQuote, Pencil, RotateCcw, TriangleAlert, Wrench, X } from "lucide-react"
 
-import type { ActionName, ActionResult, Edit, Report } from "@/api"
-import { MathHtml } from "@/components/ChangePreview"
+import type { ActionName, ActionResult, Edit, QuestionVersion, Report } from "@/api"
+import { EditDiff } from "@/components/EditDiff"
+import { EditForm } from "@/components/EditForm"
 import { IconChip, Pill, type Tone } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { Textarea } from "@/components/ui/textarea"
-import { ACTION_LABELS, FIELD_LABELS, REPAIR_LABELS, VERDICT_LABELS, formatDateTime, reportState, stripHtml } from "@/lib/cases"
+import { ACTION_LABELS, REPAIR_LABELS, VERDICT_LABELS, editsInEffect, formatDateTime, reportState } from "@/lib/cases"
+import { useKeydown } from "@/hooks/use-keydown"
 import { shouldIgnoreShortcut } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
@@ -46,32 +48,24 @@ function ConfidenceMeter({ value }: { value: number }) {
   )
 }
 
-function EditSummary({ edit }: { edit: Edit }) {
-  const before = edit.field === "answer" || edit.field === "questionType" ? edit.find : stripHtml(edit.find)
-  const after = edit.field === "answer" || edit.field === "questionType" ? edit.replace : stripHtml(edit.replace)
-  return (
-    <div className="grid gap-1 rounded-xl bg-muted px-3 py-2.5 text-sm sm:grid-cols-[7rem_1fr]">
-      <span className="text-xs text-muted-foreground">{FIELD_LABELS[edit.field]}</span>
-      <span className="min-w-0 wrap-break-word">
-        <del className="rounded bg-background px-1 text-bad">{before || "(nothing)"}</del>
-        <span className="mx-1.5 text-muted-foreground" aria-label="changed to">→</span>
-        <ins className="rounded bg-background px-1 font-medium text-good no-underline">{after || "(removed)"}</ins>
-      </span>
-    </div>
-  )
-}
+type ReportCardProps = { report: Report; current: QuestionVersion; focused: boolean; onSubmit: SubmitAction }
 
-export function ReportCard({ report, focused, onSubmit }: { report: Report; focused: boolean; onSubmit: SubmitAction }) {
+export function ReportCard({ report, current, focused, onSubmit }: ReportCardProps) {
   const state = reportState(report)
   const [editing, setEditing] = useState(false)
   const [draftEdits, setDraftEdits] = useState<Edit[]>(report.edits)
   const [draftReply, setDraftReply] = useState(report.reply)
   const [warnings, setWarnings] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
+  // A ref, not state: two key presses in a row must not both start a save before React re-renders.
+  const saving = useRef(false)
 
   const submit = async (action: ActionName, extra?: { edits?: Edit[]; reply?: string; saveAnyway?: boolean }) => {
+    if (saving.current) return
+    saving.current = true
     setBusy(true)
     const result = await onSubmit(report, action, extra)
+    saving.current = false
     setBusy(false)
     if (result && !result.saved) {
       setWarnings(result.warnings)
@@ -83,7 +77,19 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
     }
   }
 
-  const saveEdit = () => submit("edit", { edits: draftEdits, reply: draftReply })
+  // Warnings belong to the text that was checked. Any change makes them stale, so "Save anyway" must not reuse them.
+  const changeEdits = (edits: Edit[]) => {
+    setDraftEdits(edits)
+    setWarnings([])
+  }
+  const changeReply = (reply: string) => {
+    setDraftReply(reply)
+    setWarnings([])
+  }
+
+  // A whole-field change the teacher opened but did not change is not a change.
+  const editsToSave = () => draftEdits.filter((edit) => edit.find !== edit.replace)
+  const saveEdit = (saveAnyway = false) => submit("edit", { edits: editsToSave(), reply: draftReply, saveAnyway })
 
   const cancelEdit = () => {
     setEditing(false)
@@ -92,21 +98,16 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
     setDraftReply(report.reply)
   }
 
-  useEffect(() => {
-    if (!focused || state === "done" || editing) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (shouldIgnoreShortcut(event)) return
-      const key = event.key.toLowerCase()
-      if (key === "a") void submit("approve")
-      if (key === "r") void submit("reject")
-      if (key === "e") {
-        event.preventDefault()
-        setEditing(true)
-      }
+  useKeydown((event) => {
+    if (event.repeat || shouldIgnoreShortcut(event)) return
+    const key = event.key.toLowerCase()
+    if (key === "a") void submit("approve")
+    if (key === "r") void submit("reject")
+    if (key === "e") {
+      event.preventDefault()
+      setEditing(true)
     }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  })
+  }, focused && state !== "done" && !editing)
 
   const route = ROUTE_STYLE[report.route]
   const labels = state === "done" ? null : BUTTON_LABELS[state]
@@ -139,8 +140,8 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
         <p className="text-[13px] text-muted-foreground"><span className="font-medium">Route: </span>{report.route_reason}</p>
       </div>
 
-      {report.edits.length > 0 && !editing && (
-        <div className="flex flex-col gap-1.5">{report.edits.map((edit, index) => <EditSummary key={index} edit={edit} />)}</div>
+      {!editing && editsInEffect(report).length > 0 && (
+        <div className="flex flex-col gap-1.5">{editsInEffect(report).map((edit, index) => <EditDiff key={index} edit={edit} />)}</div>
       )}
 
       {editing ? (
@@ -151,29 +152,10 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
             if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) void saveEdit()
           }}
         >
-          {draftEdits.map((edit, index) => (
-            <div key={index} className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-muted-foreground" htmlFor={`edit-${report.report_id}-${index}`}>
-                New {FIELD_LABELS[edit.field].toLowerCase()} text
-              </label>
-              <Textarea
-                id={`edit-${report.report_id}-${index}`}
-                autoFocus={index === 0}
-                className="font-mono text-xs"
-                value={edit.replace}
-                onChange={(event) => setDraftEdits(draftEdits.map((item, position) => (position === index ? { ...item, replace: event.target.value } : item)))}
-              />
-              {(edit.field === "question" || edit.field === "solution") && edit.replace && (
-                <div className="rounded-xl bg-muted px-3 py-2">
-                  <p className="mb-1 text-xs text-muted-foreground">Preview</p>
-                  <MathHtml html={edit.replace} className="text-sm" />
-                </div>
-              )}
-            </div>
-          ))}
+          <EditForm reportId={report.report_id} edits={draftEdits} current={current} onChange={changeEdits} />
           <div className="flex flex-col gap-1.5">
             <label className="text-[13px] font-medium text-muted-foreground" htmlFor={`reply-${report.report_id}`}>Reply to the student</label>
-            <Textarea id={`reply-${report.report_id}`} autoFocus={draftEdits.length === 0} value={draftReply} onChange={(event) => setDraftReply(event.target.value)} />
+            <Textarea id={`reply-${report.report_id}`} autoFocus={draftEdits.length === 0} value={draftReply} onChange={(event) => changeReply(event.target.value)} />
           </div>
           <p className="text-xs text-muted-foreground"><Kbd>Ctrl</Kbd> <Kbd>Enter</Kbd> to save · <Kbd>Esc</Kbd> to cancel</p>
         </div>
@@ -188,7 +170,7 @@ export function ReportCard({ report, focused, onSubmit }: { report: Report; focu
         <div className="flex flex-col gap-2 rounded-xl bg-warn-bg p-3 text-sm">
           <p className="flex items-center gap-1.5 font-medium text-warn"><TriangleAlert className="size-4" /> Please check before saving</p>
           <ul className="list-disc pl-5">{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
-          <Button className="h-9 w-fit rounded-lg px-3" variant="outline" disabled={busy} onClick={() => submit("edit", { edits: draftEdits, reply: draftReply, saveAnyway: true })}>
+          <Button className="h-9 w-fit rounded-lg px-3" variant="outline" disabled={busy} onClick={() => void saveEdit(true)}>
             Save anyway
           </Button>
         </div>

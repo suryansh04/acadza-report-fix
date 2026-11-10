@@ -10,17 +10,21 @@ import { ReportCard, type SubmitAction } from "@/components/ReportCard"
 import { VotePanel } from "@/components/VotePanel"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
+import { useKeydown } from "@/hooks/use-keydown"
 import {
   REPAIR_LABELS,
   type QueueName,
   type SessionStats,
+  QUESTION_TYPE_LABELS,
   caseIsFinished,
   casesInQueue,
+  editKey,
+  editsInEffect,
   estimateReviewMinutes,
   queueReports,
   reportState,
-  stripHtml,
 } from "@/lib/cases"
+import { stripHtml } from "@/lib/html"
 import { type Page, shouldIgnoreShortcut } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
@@ -33,12 +37,9 @@ const QUEUE_TEXT: Record<QueueName, { title: string; empty: string; bulk: (count
   "no-change": { title: "No change", empty: "No reports closed without a change.", bulk: (count) => `Agree with all ${count}` },
 }
 
-const TYPE_LABELS: Record<string, string> = { scq: "Single correct", mcq: "Multiple correct", integerQuestion: "Integer" }
-
-function uniqueEdits(item: Case): Edit[] {
-  const seen = new Map<string, Edit>()
-  for (const report of item.reports) for (const edit of report.edits) seen.set(`${edit.field}|${edit.find}|${edit.replace}`, edit)
-  return [...seen.values()]
+// Several reports on one question often carry the same fix. Show each live change once.
+function editsForPreview(item: Case): Edit[] {
+  return [...new Map(item.reports.flatMap(editsInEffect).map((edit) => [editKey(edit), edit])).values()]
 }
 
 function BulkConfirm({ label, onConfirm }: { label: string; onConfirm: () => Promise<void> }) {
@@ -137,10 +138,10 @@ function CaseDetail({ item, queue, advancing, onSubmit, onNext }: CaseDetailProp
         <h2 className="flex items-center gap-2 text-lg font-medium">
           <MessagesSquare className="size-5" /> {item.reports.length > 1 ? `${item.reports.length} student reports` : "Student report"}
         </h2>
-        {item.reports.map((report) => <ReportCard key={report.report_id} report={report} focused={report.report_id === focusedId} onSubmit={onSubmit} />)}
+        {item.reports.map((report) => <ReportCard key={report.report_id} report={report} current={item.before} focused={report.report_id === focusedId} onSubmit={onSubmit} />)}
       </section>
-      <Panel icon={FileText} color="var(--tone-indigo)" title="Question" badge={<Pill>{TYPE_LABELS[item.questionType] ?? item.questionType}</Pill>}>
-        <ChangePreview item={item} edits={uniqueEdits(item)} />
+      <Panel icon={FileText} color="var(--tone-indigo)" title="Question" badge={<Pill>{QUESTION_TYPE_LABELS[item.questionType] ?? item.questionType}</Pill>}>
+        <ChangePreview item={item} edits={editsForPreview(item)} />
       </Panel>
       <VotePanel item={item} />
       {item.other_defects.length > 0 && (
@@ -210,15 +211,11 @@ export function ReviewPage({ cases, queue, selectedId, session, onSelect, onNavi
     return () => clearTimeout(timer)
   }, [advancing, goToNextOpen])
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (shouldIgnoreShortcut(event)) return
-      const step = { j: 1, k: -1 }[event.key.toLowerCase()]
-      if (step) move(step)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [move])
+  useKeydown((event) => {
+    if (shouldIgnoreShortcut(event)) return
+    const step = { j: 1, k: -1 }[event.key.toLowerCase()]
+    if (step) move(step)
+  })
 
   const submitAndAdvance: SubmitAction = useCallback(async (report, action, extra) => {
     const result = await onSubmit(report, action, extra)
