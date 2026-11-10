@@ -284,6 +284,15 @@ Format for each prompt:
 - **Fix:** The AI downloaded the full Bionis source from the Watermelon registry (`https://ui.watermelon.sh/r/bionis-dashboard.json`, 13 files). It copied the color tokens, the sidebar, the top bar, the card and badge styles and some icons, and then rebuilt each page on them.
 - **Lesson:** Give the AI the source code of a design, not only its name or a screenshot.
 
+### 6. Its queue logic had two hidden errors
+
+- **Error:**
+  - The "No change" queue showed 19 questions, but only 15 had a student report. Four questions exist only for unreported defects. A rule of the form "every report is no_change" is true for an empty list.
+  - The first version of "Keep all fixes" would also have approved a report that waits for a teacher, if it was on the same question as an auto-fix.
+- **How I found it:** In the second UX pass, the AI compared the counts on the screen with the data, and checked which reports the bulk action changed.
+- **Fix:** A question needs at least one report to be in a queue. Bulk actions and progress use only the reports of the queue's own route. A test confirmed that "Keep all" changed exactly the 23 auto-applied reports.
+- **Lesson:** Compare what the screen shows with the data. An "every" rule on an empty list is a common trap.
+
 <!--
 Format for each case:
 
@@ -545,3 +554,16 @@ Format for each decision:
   - Unreported defects now have an "Open question" button. The page also says clearly that the engine does not change them.
   - The urgency number now has a label and shows only in "Needs you", where it sets the order.
   - On a phone, the whole review page now scrolls, not one small box.
+
+### 19. A review flow built for speed
+
+- **Problem:** A teacher reviews many reports in a row, often at the end of a long day. Each extra click or scroll is slow and tiring.
+- **Decision:** I asked the AI for ways to make the review 10 times faster. We added:
+  - **Instant saves:** the screen uses the server's answer, and does not reload all cases after each click.
+  - **Auto-advance:** when a question is done, a green check shows, and the next question opens after about one second.
+  - **One sentence per report:** for example "Suggested fix: Answer key wrong. Approve to apply it."
+  - **Undo with U:** it undoes the last decision and reopens that question.
+  - **Bulk confirm:** "Keep all fixes" and "Agree with all", saved in one database transaction (`POST /api/actions/bulk`). Edits are never bulk, because each edit needs its own format check.
+  - **Progress:** a bar and "about N min left" on each queue. The sidebar badges count down like an inbox. When the queue is empty, an "All caught up" screen shows the number of decisions and the time.
+  - **A "Start reviewing" button** on the dashboard, and a full shortcut list on `?`.
+- **Result:** In the test, 6 "Needs you" reports took 6 key presses, with no mouse and no scrolling. The 23 auto-fixes took 2 clicks.
