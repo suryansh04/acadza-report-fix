@@ -50,7 +50,9 @@
     {"questionId": "61ee6c9d90a1a968a168686b", "repair": "spelling", "why": "Solution: 'prominant' -> 'prominent', 'Maceus' -> 'Mucous'."},
     {"questionId": "66fe9dbe22132e5a70a3e579", "repair": "solution_fix", "why": "Solution says insulin and glucagon work 'synergistically'. They are antagonistic."},
     {"questionId": "68f21caf941cda588bc04365", "repair": "wrong_chapter", "why": "Radioactive decay question filed under 'Mathematics in physics'."},
-    {"questionId": "6956d7e988d7701e5617bd3e", "repair": "notation", "why": "Solution writes cos(pi/8) x 2, where cos(pi/8 x 2) is meant. Also 'v - dx/dt' where 'v = dx/dt' is meant."},
+    {"questionId": "6956d7e988d7701e5617bd3e", "repair": "notation", "why": "Solution writes cos(pi/8) x 2, where cos(pi/8 x 2) is meant. Also 'v - dx/dt' where 'v = dx/dt' is meant. Low priority: options show 4 sqrt(2 m), unit inside the root; meaning is unchanged."},
+    {"questionId": "617fa18efd53ff1629ed890f", "repair": "spelling", "why": "Stem shows 'part ofleaf': missing space in the stored HTML."},
+    {"questionId": "6208e298fa399567e0878700", "repair": "spelling", "why": "Option D 'Von Helmont' -> 'Van Helmont'."},
     {"questionId": "622df25ab70e4b50e44ff837", "repair": "spelling", "why": "'hemispherial' -> 'hemispherical'."},
     {"questionId": "68dea7c2387eea3d0d95f9bb", "repair": "solution_fix", "why": "Solution ends at 0.08 m and does not convert to the asked unit (8 cm)."},
     {"questionId": "695ede2a88d7701e561aa9d9", "repair": "stem_data", "why": "Not sure. Statement-II 'Sometimes dialysis is not a supportive measure...' reads like a changed version of the original. Key D is consistent with the stem as written."}

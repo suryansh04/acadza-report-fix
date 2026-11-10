@@ -97,6 +97,16 @@ Format for each prompt:
 - **Fix:** I sent screenshots and told the AI to check again. We now use Watermelon UI first.
 - **Lesson:** The AI's web tool read only the page shell, not the page content. It reported missing data as "the feature does not exist". Check claims about a website yourself.
 
+### 3. It wanted to change a verdict because of a harmless display detail
+
+- **Error:** In R030, the options show `4 √(2 m)`, with the unit inside the square root. The AI wanted to change R030 from `no_error` to `defect` / `notation`. The student's claim (4√2) is wrong and has no connection to the display.
+- **How I found it:** I pointed out that every student reads `4 √(2 m)` as 4√2 m. The AI agreed: the notation is technically wrong, but the meaning does not change.
+- **Fix:**
+  - R030 stays `no_error`.
+  - Rule 15 is now more exact: a defect changes the verdict only if it is about what the student reported.
+  - A display detail that does not change the meaning is not a defect.
+- **Lesson:** "Technically wrong" is not the same as "harmful to a student". Judge a defect by its effect on the student.
+
 ### 2. Its vote step had gaps
 
 - **Error:** The first vote rules compared the 4 answers as plain text. They had 4 gaps:
@@ -296,9 +306,15 @@ Format for each decision:
 ### 15. A real defect counts, even if the student's claim is wrong
 
 - **Problem:** In R040 the student wrote only "wrong". The key is correct, but option B has a spelling error ("Canolla"). In R004 the student claims 8225, which is wrong, but the key is also wrong.
-- **Decision:** If the engine finds a real defect in the question, the verdict is `defect`, even when the student's claim is wrong. The reply tells the student both facts.
+- **Decision:**
+  - The verdict is `defect` when the defect is about what the student reported, or when the comment is too vague to point anywhere. Examples: R004 (the key is wrong), R040 ("wrong").
+  - If the student makes a specific claim that is wrong, and the defect has no connection to it, the verdict follows the claim (`no_error`). The defect goes to the bonus list and is fixed separately. Example: R030.
+  - A display detail that does not change the meaning for a student is not a defect.
+  - The reply tells the student all the facts.
 - **Why:**
-  - `no_error` means "checked and correct", and these questions are not correct.
+  - `no_error` means "checked and correct", so a question with a defect that the student reported is not `no_error`.
   - The README says that a short comment such as "wrong" can still point to a real defect.
-  - A broken question hurts every student, so we fix it when we find it.
-- **Dropped:** Judging only the student's claim. It would leave real defects live.
+  - Each verdict answers the student's report, and no real defect is lost.
+- **Dropped:**
+  - Judging only the student's claim, because it would leave real defects live.
+  - "Any defect makes the verdict `defect`", because it gives unrelated verdicts (see "AI was wrong", case 3).
