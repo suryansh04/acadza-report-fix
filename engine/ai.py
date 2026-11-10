@@ -163,6 +163,7 @@ def call_claude[T: BaseModel](step: str, model: str, system_prompt: str, user_me
     cache_path.write_text(
         json.dumps({"request": request, "result": result.model_dump(mode="json"), "usage": usage_to_store}, indent=2, ensure_ascii=False),
         encoding="utf-8",
+        newline="\n",
     )
     return result, usage
 
