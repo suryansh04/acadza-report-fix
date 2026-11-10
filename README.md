@@ -97,5 +97,6 @@ results.json          the scored output, one entry per report
 cases.json            all the evidence, for the teacher console
 cost.json             AI calls, tokens and cost
 PROMPTS.md            every prompt, my prompts to the coding AI, AI mistakes, design decisions
+PRODUCT.md            who loses most, what never auto-applies, week-1 metric, one idea
 docs/BRIEF.md         the original task
 ```
