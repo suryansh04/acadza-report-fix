@@ -97,16 +97,6 @@ Format for each prompt:
 - **Fix:** I sent screenshots and told the AI to check again. We now use Watermelon UI first.
 - **Lesson:** The AI's web tool read only the page shell, not the page content. It reported missing data as "the feature does not exist". Check claims about a website yourself.
 
-### 3. It wanted to change a verdict because of a harmless display detail
-
-- **Error:** In R030, the options show `4 √(2 m)`, with the unit inside the square root. The AI wanted to change R030 from `no_error` to `defect` / `notation`. The student's claim (4√2) is wrong and has no connection to the display.
-- **How I found it:** I pointed out that every student reads `4 √(2 m)` as 4√2 m. The AI agreed: the notation is technically wrong, but the meaning does not change.
-- **Fix:**
-  - R030 stays `no_error`.
-  - Rule 15 is now more exact: a defect changes the verdict only if it is about what the student reported.
-  - A display detail that does not change the meaning is not a defect.
-- **Lesson:** "Technically wrong" is not the same as "harmful to a student". Judge a defect by its effect on the student.
-
 ### 2. Its vote step had gaps
 
 - **Error:** The first vote rules compared the 4 answers as plain text. They had 4 gaps:
@@ -121,6 +111,16 @@ Format for each prompt:
   - Add a rule: two solvers never overrule the key and the solution together.
   - Add a third solver only when the first two disagree.
 - **Lesson:** Ask the AI to check its own design again. The first answer is often not complete.
+
+### 3. It wanted to change a verdict because of a harmless display detail
+
+- **Error:** In R030, the options show `4 √(2 m)`, with the unit inside the square root. The AI wanted to change R030 from `no_error` to `defect` / `notation`. The student's claim (4√2) is wrong and has no connection to the display.
+- **How I found it:** I pointed out that every student reads `4 √(2 m)` as 4√2 m. The AI agreed: the notation is technically wrong, but the meaning does not change.
+- **Fix:**
+  - R030 stays `no_error`.
+  - Rule 15 is now more exact: a defect changes the verdict only if it is about what the student reported.
+  - A display detail that does not change the meaning is not a defect.
+- **Lesson:** "Technically wrong" is not the same as "harmful to a student". Judge a defect by its effect on the student.
 
 <!--
 Format for each case:
