@@ -1,7 +1,9 @@
 import hashlib
+import html
 import json
 import os
 from dataclasses import asdict, dataclass
+from functools import cache
 from pathlib import Path
 from typing import Literal
 
@@ -93,7 +95,12 @@ def load_env_file(path: Path = PROJECT_DIR / ".env") -> None:
     for line in path.read_text(encoding="utf-8").splitlines():
         key, separator, value = line.partition("=")
         if separator and key.strip() and not key.strip().startswith("#"):
-            os.environ.setdefault(key.strip(), value.strip())
+            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+@cache
+def get_client() -> anthropic.Anthropic:
+    return anthropic.Anthropic()
 
 
 def read_prompt(name: str) -> str:
@@ -121,7 +128,7 @@ def call_claude[T: BaseModel](step: str, model: str, system_prompt: str, user_me
         cached = json.loads(cache_path.read_text(encoding="utf-8"))
         return output_model.model_validate(cached["result"]), CallUsage(**cached["usage"], from_cache=True)
 
-    response = anthropic.Anthropic().beta.messages.parse(
+    response = get_client().beta.messages.parse(
         model=model,
         max_tokens=MAX_OUTPUT_TOKENS,
         system=system_prompt,
@@ -137,6 +144,8 @@ def call_claude[T: BaseModel](step: str, model: str, system_prompt: str, user_me
         raise RuntimeError(f"{model} hit the output limit on the {step} request. Raise MAX_OUTPUT_TOKENS.")
 
     result = response.parsed_output
+    if result is None:
+        raise RuntimeError(f"{model} returned no parsable output for the {step} request (stop reason: {response.stop_reason}).")
     usage = CallUsage(
         step=step,
         model=model,
@@ -177,7 +186,7 @@ def format_question_for_judge(question: Question, findings: list[Finding], solve
     )
     report_blocks = "\n".join(
         f'<report id="{report.report_id}" platform="{report.source}" reported_at="{report.reported_at}">\n'
-        f"<comment>{report.comment}</comment>\n</report>"
+        f"<comment>{html.escape(report.comment, quote=False)}</comment>\n</report>"
         for report in question.reports
     ) or "No student reports. Look only for other defects."
 

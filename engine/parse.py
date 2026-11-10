@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ElementTree
 from dataclasses import dataclass, field
 from html.entities import name2codepoint
 from pathlib import Path
+from typing import Any
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_DIR / "data"
@@ -44,7 +45,7 @@ class Question:
     reports: list[Report] = field(default_factory=list)
 
 
-def load_json_file(path: Path):
+def load_json_file(path: Path) -> Any:
     with open(path, encoding="utf-8") as file:
         return json.load(file)
 

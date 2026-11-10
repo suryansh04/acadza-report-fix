@@ -1,10 +1,14 @@
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from ai import SolverResult
+from checks import extract_option_letters
 from parse import Question
 
-NUMBER_TOLERANCE = 0.005
+# Only rounding counts as the same value: 3113 and 3112.99 match, 3113 and 3100 do not.
+NUMBER_TOLERANCE = 0.0001
+MATH_MINUS_SIGN = "−"
 CONFIDENCE_BY_OUTCOME = {
     "all_agree": 0.95,
     "key_wrong": 0.93,
@@ -29,15 +33,14 @@ class Vote:
     explanation: str
 
 
-def normalize_answer(value, question_type: str) -> str | None:
+def normalize_answer(value: Any, question_type: str) -> str | None:
     """Turn any stored or AI answer into one comparable form, or None if it has no usable answer."""
     if value is None:
         return None
     if question_type == "integerQuestion":
-        match = re.search(r"-?\d+(\.\d+)?", str(value))
+        match = re.search(r"-?\d+(\.\d+)?", str(value).replace(MATH_MINUS_SIGN, "-"))
         return format(float(match.group(0)), "g") if match else None
-    items = value if isinstance(value, list) else [value]
-    letters = sorted({letter for item in items for letter in re.findall(r"\b[A-D]\b", str(item).upper())})
+    letters = extract_option_letters(value)
     if not letters or (question_type == "scq" and len(letters) != 1):
         return None
     return ", ".join(letters)
@@ -82,26 +85,26 @@ def build_vote(question: Question, solver_results: list[SolverResult], solution_
     solver_answers = [f"{result.status}:{result.answer}" if result.answer else result.status for result in solver_results]
     consensus = find_solver_consensus(solver_results, kind)
 
-    def vote(outcome: str, explanation: str) -> Vote:
+    def make_vote(outcome: str, explanation: str) -> Vote:
         return Vote(outcome, consensus[1] if consensus else None, consensus[0] if consensus else None,
                     key, solution, solver_answers, CONFIDENCE_BY_OUTCOME[outcome], explanation)
 
     if consensus is None:
-        return vote("solvers_disagree", "The solvers do not agree on an answer.")
+        return make_vote("solvers_disagree", "The solvers do not agree on an answer.")
     status, agreed = consensus
     if status != "solved":
-        return vote("question_unsolvable", f"The solvers agree the question cannot be answered as written ({status}).")
+        return make_vote("question_unsolvable", f"The solvers agree the question cannot be answered as written ({status}).")
 
     key_ok = answers_match(key, agreed, kind)
     solution_ok = answers_match(solution, agreed, kind)
     if key_ok and solution_ok:
-        return vote("all_agree", f"Key, solution and solvers all give {agreed}.")
+        return make_vote("all_agree", f"Key, solution and solvers all give {agreed}.")
     if key_ok and solution is None:
-        return vote("key_confirmed", f"Key and solvers give {agreed}. The solution has no usable answer.")
+        return make_vote("key_confirmed", f"Key and solvers give {agreed}. The solution has no usable answer.")
     if key_ok:
-        return vote("solution_wrong", f"Key and solvers give {agreed}, but the solution ends at {solution}.")
+        return make_vote("solution_wrong", f"Key and solvers give {agreed}, but the solution ends at {solution}.")
     if solution_ok:
-        return vote("key_wrong", f"Solvers and solution give {agreed}, but the key says {key}.")
+        return make_vote("key_wrong", f"Solvers and solution give {agreed}, but the key says {key}.")
     if solution is not None and answers_match(key, solution, kind):
-        return vote("key_and_solution_vs_solvers", f"Key and solution give {key}, but the solvers give {agreed}.")
-    return vote("key_unconfirmed", f"Solvers give {agreed}, the key says {key}, and the solution does not confirm either.")
+        return make_vote("key_and_solution_vs_solvers", f"Key and solution give {key}, but the solvers give {agreed}.")
+    return make_vote("key_unconfirmed", f"Solvers give {agreed}, the key says {key}, and the solution does not confirm either.")

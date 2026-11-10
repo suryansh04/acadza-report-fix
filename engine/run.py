@@ -3,11 +3,11 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
 
-from ai import OPUS, SONNET, TAXONOMY, CallUsage, judge_question, load_env_file, solve_question
-from checks import run_all_checks
+from ai import OPUS, SONNET, TAXONOMY, CallUsage, JudgeResult, ReportJudgment, SolverResult, judge_question, load_env_file, solve_question
+from checks import Finding, run_all_checks
 from guards import Decision, decide_routes_for_question
 from parse import PROJECT_DIR, Question, load_questions_with_reports
-from vote import build_vote, solvers_need_tiebreak
+from vote import Vote, build_vote, solvers_need_tiebreak
 
 PARALLEL_QUESTIONS = 6
 # How much harm a defect does to every student who meets it. Drives the faculty queue order.
@@ -39,14 +39,14 @@ def process_question(question: Question) -> tuple[dict, list[dict], list[CallUsa
     return case, results, [usage for _, usage in solved] + [judge_usage]
 
 
-def format_edits_for_results(decision: Decision):
+def format_edits_for_results(decision: Decision) -> dict | list[dict] | None:
     edits = [edit.model_dump() for edit in decision.edits]
     if not edits:
         return None
     return edits[0] if len(edits) == 1 else edits
 
 
-def build_result_entry(question: Question, judgment, decision: Decision) -> dict:
+def build_result_entry(question: Question, judgment: ReportJudgment, decision: Decision) -> dict:
     return {
         "reportId": decision.report_id,
         "questionId": question.question_id,
@@ -60,13 +60,14 @@ def build_result_entry(question: Question, judgment, decision: Decision) -> dict
     }
 
 
-def calculate_urgency(decisions: list[Decision], judgments: list, report_count: int) -> float:
+def calculate_urgency(decisions: list[Decision], judgments: list[ReportJudgment], report_count: int) -> float:
     harm = max((HARM_BY_REPAIR.get(judgment.repair, 0) for judgment in judgments if judgment.verdict == "defect"), default=0)
     lowest_confidence = min((decision.confidence for decision in decisions), default=1.0)
     return round(harm * (1 + report_count) + 10 * (1 - lowest_confidence), 1)
 
 
-def build_case(question: Question, findings, solver_results, vote, judgment, decisions: list[Decision], edited: Question) -> dict:
+def build_case(question: Question, findings: list[Finding], solver_results: list[SolverResult], vote: Vote,
+               judgment: JudgeResult, decisions: list[Decision], edited: Question) -> dict:
     judged = {item.report_id: item for item in judgment.reports}
     reports = []
     for report, decision in zip(question.reports, decisions):
@@ -141,7 +142,7 @@ def summarize_cost(usages: list[CallUsage]) -> dict:
     }
 
 
-def write_json(name: str, data) -> None:
+def write_json(name: str, data: object) -> None:
     (PROJECT_DIR / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 

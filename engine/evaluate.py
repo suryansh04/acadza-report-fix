@@ -1,5 +1,3 @@
-import json
-
 from parse import PROJECT_DIR, load_json_file
 
 

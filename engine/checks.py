@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from parse import OPTION_LETTERS, Question
 
@@ -27,11 +28,11 @@ def parse_iso_timestamp(value: str) -> datetime | None:
         return None
 
 
-def is_single_option_letter(value) -> bool:
+def is_single_option_letter(value: Any) -> bool:
     return isinstance(value, str) and value.strip() in OPTION_LETTERS
 
 
-def is_number(value) -> bool:
+def is_number(value: Any) -> bool:
     try:
         float(str(value).strip())
         return True
@@ -56,7 +57,7 @@ def check_answer_format(question: Question) -> list[Finding]:
     if kind == "mcq":
         if not isinstance(answer, list) or not all(is_single_option_letter(item) for item in answer):
             findings = [Finding("answer_format", f"Multi-answer key must be a list of single letters, found {answer!r}.", "answer_key")]
-            usable_letters = extract_letters_from_messy_key(answer)
+            usable_letters = extract_option_letters(answer)
             if len(usable_letters) == 1:
                 findings.append(Finding("single_answer_in_mcq", f"Only one usable letter ({usable_letters[0]}) in a multi-answer key.", "type_mismatch"))
             return findings
@@ -67,18 +68,15 @@ def check_answer_format(question: Question) -> list[Finding]:
     return []
 
 
-def extract_letters_from_messy_key(answer) -> list[str]:
+def extract_option_letters(answer: Any) -> list[str]:
     items = answer if isinstance(answer, list) else [answer]
-    letters = []
-    for item in items:
-        letters.extend(re.findall(r"\b[A-D]\b", str(item)))
-    return sorted(set(letters))
+    return sorted({letter for item in items for letter in re.findall(r"\b[A-D]\b", str(item).upper())})
 
 
 def check_key_points_to_existing_option(question: Question) -> list[Finding]:
     if question.question_type == "integerQuestion":
         return []
-    letters = extract_letters_from_messy_key(question.answer)
+    letters = extract_option_letters(question.answer)
     findings = []
     for letter in letters:
         if letter not in question.options:

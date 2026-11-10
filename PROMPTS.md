@@ -174,6 +174,43 @@ List any real defect in this question that no report covers, with the repair and
    **Why:** AI tools tend to add too many files and abstractions. The Karpathy guidelines tell the AI to write the minimum code, make small changes, and state its assumptions.
    **Result:** The AI read the skill before it installed it, then added it to `.claude/skills/`. The file structure has one file for each job.
 
+2. **Prompt:** "Is this the best you can think of? This step is crucial. Think more thoroughly."
+   **Why:** The first engine design was a list of steps. I wanted it to be tested for weak points.
+   **Result:** The AI found 6 gaps:
+   - only one solve
+   - nothing read the stored solution
+   - the AI scored its own confidence
+   - edits could fail on the raw HTML
+   - no test of the fix
+   - no search for unreported defects
+
+   This became the 8-step engine.
+
+3. **Prompt:** "Are you sure? Shouldn't we make it agentic, since there are so many rules?"
+   **Why:** I wanted to know if a fixed pipeline is the right shape for this problem.
+   **Result:** The AI kept the pipeline and explained why: the steps are known, safety needs code to decide, the results must be repeatable, and it costs less. It offered one small agentic step (a code tool for the tiebreak solver) only if the tests show it is needed.
+
+4. **Prompt:** "Are you sure about this?" (about the switch to Pydantic)
+   **Why:** The AI answered with confidence, and I wanted proof.
+   **Result:** The AI checked each claim in the installed SDK. It found 2 of its own claims were wrong: the cache would not survive the change, and the "silent typo" risk was overstated.
+
+5. **Prompt:** "Verify this thoroughly." (after the solver fix)
+   **Why:** One good run does not prove a model is stable.
+   **Result:** The AI ran the solvers again with an empty cache. That run showed Sonnet guessing what a blank option meant. One rule fixed it, and two later full runs were 100% correct.
+
+6. **Prompt:** "Review every file in a loop. Verify each file. If there is a bug, find a fix, then look for a better fix. Check the code against CLAUDE.md."
+   **Why:** The engine scores well, but a high score can hide bugs on inputs that are not in the 44 reports.
+   **Result:** The AI found:
+   - 4 bugs:
+     - a crash on an invalid multi-answer key
+     - a second, different fix on the same question was dropped
+     - a number tolerance that counted 3113 and 3100 as equal
+     - a lost minus sign
+   - 1 security issue: a comment could break out of its tags
+   - several `CLAUDE.md` problems: duplicate code, missing types, an unused import and an unpinned dependency
+
+   For the dropped-fix bug, the first idea was "one fix per repair type". The better fix is "one fix per defect": two fixes merge only when they change the same text. Every fix got its own test.
+
 <!--
 Format for each prompt:
 

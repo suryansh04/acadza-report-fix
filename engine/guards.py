@@ -62,6 +62,15 @@ def replace_edit_text_once(raw: str, find: str, replace: str) -> str:
     return build_edit_pattern(find).sub(lambda _: replace, raw, count=1)
 
 
+def raw_html_for_field(question: Question, field_name: str) -> str:
+    return question.raw_question_html if field_name == "question" else question.raw_solution_html
+
+
+def find_new_problems(findings_before: list[Finding], edited: Question) -> list[Finding]:
+    before = {(finding.check, finding.detail) for finding in findings_before}
+    return [finding for finding in run_all_checks(edited) if (finding.check, finding.detail) not in before]
+
+
 def apply_edits_to_copy(question: Question, edits: list[Edit]) -> Question:
     record = copy.deepcopy(question.raw_record)
     for edit in sorted(edits, key=lambda item: item.field != "questionType"):
@@ -71,7 +80,11 @@ def apply_edits_to_copy(question: Question, edits: list[Edit]) -> Question:
             record["questionType"] = edit.replace
         elif edit.field == "answer":
             normalized = normalize_answer(edit.replace, kind)
-            record[kind]["answer"] = normalized.split(", ") if kind == "mcq" else normalized
+            # An unusable key is stored as written, so the checks flag it and the case goes to a teacher.
+            if normalized is None:
+                record[kind]["answer"] = edit.replace
+            else:
+                record[kind]["answer"] = normalized.split(", ") if kind == "mcq" else normalized
         else:
             record[kind][edit.field] = replace_edit_text_once(record[kind][edit.field], edit.find, edit.replace)
     edited = build_question(record)
@@ -91,7 +104,7 @@ def find_edit_problems(question: Question, edit: Edit, repair: str) -> list[str]
     if edit.field == "answer":
         return []
 
-    raw = question.raw_question_html if edit.field == "question" else question.raw_solution_html
+    raw = raw_html_for_field(question, edit.field)
     problems = []
     occurrences = len(find_edit_spans(raw, edit.find))
     if occurrences != 1:
@@ -155,10 +168,8 @@ def find_vote_problems(repair: str, vote: Vote, edited: Question, edits: list[Ed
 
 
 def find_test_problems(question: Question, edited: Question, repair: str, findings_before: list[Finding]) -> list[str]:
-    before = {(finding.check, finding.detail) for finding in findings_before}
-    after = run_all_checks(edited)
-    problems = [f"the fixed copy has a new problem: {finding.detail}" for finding in after if (finding.check, finding.detail) not in before]
-    still_present = {finding.check for finding in after} & FINDINGS_EACH_REPAIR_MUST_CLEAR.get(repair, set())
+    problems = [f"the fixed copy has a new problem: {finding.detail}" for finding in find_new_problems(findings_before, edited)]
+    still_present = {finding.check for finding in run_all_checks(edited)} & FINDINGS_EACH_REPAIR_MUST_CLEAR.get(repair, set())
     if still_present:
         problems.append(f"the fix did not clear: {', '.join(sorted(still_present))}")
     if repair == "option_repair" and edited.stem_text != question.stem_text:
@@ -208,38 +219,49 @@ def edits_overlap(first: Edit, second: Edit, question: Question) -> bool:
         return False
     if first.field in ("answer", "questionType"):
         return first.replace != second.replace
-    raw = question.raw_question_html if first.field == "question" else question.raw_solution_html
+    raw = raw_html_for_field(question, first.field)
     (start_a, end_a), (start_b, end_b) = find_edit_spans(raw, first.find)[0], find_edit_spans(raw, second.find)[0]
     return start_a < end_b and start_b < end_a
 
 
-def use_one_fix_per_repair(decisions: list[Decision], judgments: list[ReportJudgment]) -> None:
-    """Reports on the same defect get the same fix, so two wordings of one fix never collide."""
-    first_fix_by_repair: dict[str, list[Edit]] = {}
+def fix_sets_overlap(first: list[Edit], second: list[Edit], question: Question) -> bool:
+    return any(edits_overlap(a, b, question) for a in first for b in second)
+
+
+def use_one_fix_per_defect(decisions: list[Decision], judgments: list[ReportJudgment], question: Question) -> None:
+    """Two reports on the same defect get one fix, so two wordings of that fix never collide.
+
+    Fixes of the same repair type that touch different text are different defects and both stay.
+    """
+    kept: list[tuple[str, list[Edit]]] = []
     for decision, judgment in zip(decisions, judgments):
-        if decision.route == "auto_apply":
-            decision.edits = first_fix_by_repair.setdefault(judgment.repair, decision.edits)
+        if decision.route != "auto_apply":
+            continue
+        same_defect = next((edits for repair, edits in kept
+                            if repair == judgment.repair and fix_sets_overlap(edits, decision.edits, question)), None)
+        if same_defect is None:
+            kept.append((judgment.repair, decision.edits))
+        else:
+            decision.edits = same_defect
 
 
 def find_conflicting_fix_sets(question: Question, fix_sets: list[list[Edit]]) -> bool:
-    return any(edits_overlap(a, b, question)
-               for i, first_set in enumerate(fix_sets) for second_set in fix_sets[i + 1:]
-               for a in first_set for b in second_set)
+    return any(fix_sets_overlap(first, second, question)
+               for index, first in enumerate(fix_sets) for second in fix_sets[index + 1:])
 
 
 def decide_routes_for_question(question: Question, judgments: list[ReportJudgment], vote: Vote,
                                findings: list[Finding]) -> tuple[list[Decision], Question]:
     """Route every report, then check that all auto fixes for the question work together on one copy."""
     decisions = [decide_route(question, judgment, vote, findings) for judgment in judgments]
-    use_one_fix_per_repair(decisions, judgments)
+    use_one_fix_per_defect(decisions, judgments, question)
     fix_sets = list({edit_signature(d.edits): d.edits for d in decisions if d.route == "auto_apply"}.values())
     if not fix_sets:
         return decisions, question
 
-    edited = apply_edits_to_copy(question, [edit for edits in fix_sets for edit in edits])
-    before = {(finding.check, finding.detail) for finding in findings}
-    new_problems = [finding for finding in run_all_checks(edited) if (finding.check, finding.detail) not in before]
-    if find_conflicting_fix_sets(question, fix_sets) or new_problems:
+    conflict = find_conflicting_fix_sets(question, fix_sets)
+    edited = question if conflict else apply_edits_to_copy(question, [edit for edits in fix_sets for edit in edits])
+    if conflict or find_new_problems(findings, edited):
         for index, decision in enumerate(decisions):
             if decision.route == "auto_apply":
                 decisions[index] = build_teacher_decision(judgments[index], vote, "The fixes on this question conflict when applied together.")
