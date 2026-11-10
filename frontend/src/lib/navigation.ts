@@ -4,6 +4,7 @@ export type Page = "home" | "needs-you" | "auto-fixed" | "no-change" | "unreport
 
 const PAGES: Page[] = ["home", "needs-you", "auto-fixed", "no-change", "unreported", "audit"]
 const REVIEWER_KEY = "report-fix-reviewer"
+const SOUND_KEY = "report-fix-sound"
 
 export type Location = { page: Page; questionId: string | null }
 
@@ -38,25 +39,36 @@ export function useLocation(): [Location, Navigate] {
   return [location, navigate]
 }
 
-export function useReviewerName(): [string, (name: string) => void] {
-  const [name, setName] = useState(() => {
+/** A value kept in localStorage for this browser. Storage can be blocked (private mode); then it lasts for this session only. */
+function useStoredText(key: string, fallback: string): [string, (value: string) => void] {
+  const [value, setValue] = useState(() => {
     try {
-      return window.localStorage.getItem(REVIEWER_KEY) ?? ""
+      return window.localStorage.getItem(key) ?? fallback
     } catch {
-      return ""
+      return fallback
     }
   })
 
-  const saveName = useCallback((value: string) => {
-    setName(value)
+  const saveValue = useCallback((next: string) => {
+    setValue(next)
     try {
-      window.localStorage.setItem(REVIEWER_KEY, value)
+      window.localStorage.setItem(key, next)
     } catch {
-      // Storage can be blocked (private mode). The name still works for this session.
+      // Blocked storage: keep the value in memory only.
     }
-  }, [])
+  }, [key])
 
-  return [name, saveName]
+  return [value, saveValue]
+}
+
+export function useReviewerName(): [string, (name: string) => void] {
+  return useStoredText(REVIEWER_KEY, "")
+}
+
+export function useSoundOn(): [boolean, (on: boolean) => void] {
+  const [stored, setStored] = useStoredText(SOUND_KEY, "on")
+  const setSoundOn = useCallback((on: boolean) => setStored(on ? "on" : "off"), [setStored])
+  return [stored !== "off", setSoundOn]
 }
 
 /** True when a single-letter shortcut must not fire: the teacher is typing, a dialog is open, or a modifier is held. */

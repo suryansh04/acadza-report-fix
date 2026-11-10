@@ -6,12 +6,14 @@ import { type Case, type Report, type TeacherAction, fetchCases, fetchHealth, sa
 import { AppSidebar } from "@/components/AppSidebar"
 import type { SubmitAction } from "@/components/ReportCard"
 import { ShortcutsDialog } from "@/components/ShortcutsDialog"
+import { SensoryUIProvider } from "@/components/ui/sensory-ui/config/provider"
+import { usePlaySound } from "@/components/ui/sensory-ui/config/use-play-sound"
 import { Topbar } from "@/components/Topbar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ACTION_LABELS, type SessionStats, caseIsFinished, casesInQueue, reportState } from "@/lib/cases"
-import { type Page, shouldIgnoreShortcut, useLocation, useReviewerName } from "@/lib/navigation"
+import { type Page, shouldIgnoreShortcut, useLocation, useReviewerName, useSoundOn } from "@/lib/navigation"
 import { AuditLogPage } from "@/pages/AuditLogPage"
 import { HomePage } from "@/pages/HomePage"
 import { ReviewPage } from "@/pages/ReviewPage"
@@ -22,7 +24,7 @@ const REVIEW_PAGES: Page[] = ["needs-you", "auto-fixed", "no-change"]
 
 export type ConfirmAll = (reports: Report[]) => Promise<boolean>
 
-function Console() {
+function Console({ soundOn, onSoundChange }: { soundOn: boolean; onSoundChange: (on: boolean) => void }) {
   const [location, navigate] = useLocation()
   const [reviewer, setReviewer] = useReviewerName()
   const [cases, setCases] = useState<Case[] | null>(null)
@@ -34,6 +36,8 @@ function Console() {
   const [session, setSession] = useState<SessionStats>({ decisions: 0, startedAt: null })
   // The reports of the last decision, so U can undo it from anywhere.
   const lastDecision = useRef<Report[] | null>(null)
+  // A short rising chime when a review is saved. Undo stays silent.
+  const { play: playSuccess } = usePlaySound({ sound: "notification.success" })
 
   useEffect(() => {
     fetchCases().then(setCases).catch((error: Error) => setLoadError(error.message))
@@ -90,13 +94,14 @@ function Console() {
       if (!result.saved) return result
       applyDecisions(new Map([[report.report_id, result.entry]]), 1)
       lastDecision.current = [report]
+      playSuccess()
       toast.success(`${report.report_id}: ${ACTION_LABELS[action].toLowerCase()}`, { action: { label: "Undo", onClick: () => void undo([report]) } })
       return result
     } catch (error) {
       toast.error(`Could not save: ${(error as Error).message}`)
       return null
     }
-  }, [reviewer, hasReviewer, applyDecisions, undo])
+  }, [reviewer, hasReviewer, applyDecisions, undo, playSuccess])
 
   const confirmAll: ConfirmAll = useCallback(async (reports) => {
     if (reports.length === 0 || !hasReviewer()) return false
@@ -104,13 +109,14 @@ function Console() {
       const entries = await saveBulkAction(reports.map((report) => report.report_id), "approve", reviewer)
       applyDecisions(new Map(entries.map((entry) => [entry.report_id, entry])), entries.length)
       lastDecision.current = reports
+      playSuccess()
       toast.success(`${entries.length} reports confirmed`, { action: { label: "Undo all", onClick: () => void undo(reports) } })
       return true
     } catch (error) {
       toast.error(`Could not save: ${(error as Error).message}`)
       return false
     }
-  }, [reviewer, hasReviewer, applyDecisions, undo])
+  }, [reviewer, hasReviewer, applyDecisions, undo, playSuccess])
 
   const { page, questionId } = location
 
@@ -155,7 +161,8 @@ function Console() {
       <AppSidebar page={page} counts={counts} reviewer={reviewer} onReviewerChange={setReviewer} onNavigate={navigate} onShowShortcuts={() => setShortcutsOpen(true)} />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar page={page} cases={cases ?? []} openReports={openReports} reviewer={reviewer} database={database} profileOpen={profileOpen}
-          onProfileOpenChange={setProfileOpen} onReviewerChange={setReviewer} onNavigate={navigate} />
+          onProfileOpenChange={setProfileOpen} onReviewerChange={setReviewer} onNavigate={navigate}
+          soundOn={soundOn} onSoundChange={onSoundChange} />
         {REVIEW_PAGES.includes(page) && cases ? (
           <div className="min-h-0 flex-1">{renderPage()}</div>
         ) : (
@@ -169,11 +176,14 @@ function Console() {
 }
 
 export default function App() {
+  const [soundOn, setSoundOn] = useSoundOn()
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-      <TooltipProvider>
-        <Console />
-      </TooltipProvider>
+      <SensoryUIProvider config={{ theme: "soft", enabled: soundOn }}>
+        <TooltipProvider>
+          <Console soundOn={soundOn} onSoundChange={setSoundOn} />
+        </TooltipProvider>
+      </SensoryUIProvider>
     </ThemeProvider>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { UserRound } from "lucide-react"
+import { UserRound, Volume2, VolumeX } from "lucide-react"
 
 import type { Case } from "@/api"
 import { BellIcon, SearchIcon } from "@/components/icons"
@@ -143,10 +143,12 @@ type TopbarProps = Omit<ProfileMenuProps, "open" | "onOpenChange"> & {
   openReports: number
   profileOpen: boolean
   onProfileOpenChange: (open: boolean) => void
+  soundOn: boolean
+  onSoundChange: (on: boolean) => void
   onNavigate: (page: Page, questionId?: string) => void
 }
 
-export function Topbar({ page, cases, openReports, profileOpen, onProfileOpenChange, onNavigate, ...profile }: TopbarProps) {
+export function Topbar({ page, cases, openReports, profileOpen, onProfileOpenChange, soundOn, onSoundChange, onNavigate, ...profile }: TopbarProps) {
   const { label, icon: PageIcon } = PAGE_META[page]
 
   return (
@@ -159,6 +161,17 @@ export function Topbar({ page, cases, openReports, profileOpen, onProfileOpenCha
 
       <div className="flex shrink-0 items-center gap-2">
         <CaseSearch cases={cases} onOpen={(item) => onNavigate(queueForCase(item), item.questionId)} />
+        <Button
+          type="button"
+          variant="outline"
+          className="size-11 rounded-lg text-muted-foreground"
+          aria-pressed={soundOn}
+          aria-label={soundOn ? "Turn off the success sound" : "Turn on the success sound"}
+          title={soundOn ? "Sound on: a chime plays when you save a review" : "Sound off"}
+          onClick={() => onSoundChange(!soundOn)}
+        >
+          {soundOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
+        </Button>
         <Button
           type="button"
           variant="outline"

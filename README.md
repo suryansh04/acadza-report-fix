@@ -53,6 +53,7 @@ The console is built so that a teacher can clear the queue fast, also when tired
 - **Bulk confirm.** "Keep all fixes" and "Agree with all" confirm a whole queue in one step. They touch only the reports of that queue, and "Undo all" reverses them.
 - **Safe edits.** The teacher can edit any field. The backend shows format warnings, for example a key that is not an option, and the teacher can still save.
 - **Audit log.** Every action is saved with the teacher's name and time. An undo is a new entry. Nothing is deleted.
+- **A small reward.** A soft rising chime plays when a review is saved. It is made in the browser with the Web Audio API (the "soft" pack of [sensory-ui](https://www.sensory-ui.com/), MIT, copied into `frontend/src/components/ui/sensory-ui/`). The speaker button in the top bar turns it off. It is also off when the system asks for reduced motion.
 
 ## Safety rules
 

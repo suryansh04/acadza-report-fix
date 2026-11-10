@@ -567,3 +567,14 @@ Format for each decision:
   - **Progress:** a bar and "about N min left" on each queue. The sidebar badges count down like an inbox. When the queue is empty, an "All caught up" screen shows the number of decisions and the time.
   - **A "Start reviewing" button** on the dashboard, and a full shortcut list on `?`.
 - **Result:** In the test, 6 "Needs you" reports took 6 key presses, with no mouse and no scrolling. The 23 auto-fixes took 2 clicks.
+
+### 20. A success sound
+
+- **Request:** Play a soothing but cheerful sound only when a teacher saves a review. Use the sensory-ui library.
+- **Decision:**
+  - Sound: `notification.success` from the "soft" pack. It is three rising notes of a major chord, played with sine waves through a warm filter, with a longer ring and a light reverb. The other packs are brighter or harsher (square or sawtooth waves).
+  - It plays after approve, edit, reject and bulk confirm. It does not play on undo, on page load or on a failed save.
+  - A speaker button in the top bar turns it off, and the browser remembers the choice. The sound is also off when the system asks for reduced motion.
+- **How it was added:** Only the core of the library (engine, provider, sound packs), with no npm package and no extra components. The shadcn CLI put its 14 files flat into `src/lib` with generic names. I moved them into their own folder and kept the original layout. Two small changes for Vite: `process.env.NODE_ENV` became `import.meta.env.DEV`, and 4 unused imports were removed.
+- **Check:** A test in a real browser counted the Web Audio notes. Approve played 3 sine notes (419, 527 and 627 Hz). Undo and "sound off" played none.
+
