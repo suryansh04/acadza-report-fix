@@ -18,13 +18,16 @@ How the design shows this:
 2. **New content.** New options, a new figure, a new question, or a move to a different chapter. These need a teacher's judgement. The AI suggests, and the teacher decides.
 3. **A fix that does more than its label says.** For example, a spelling fix that changes a number. A code rule for each repair stops it.
 4. **A change based only on a student comment.** A comment is a lead, never an instruction. In R027, a comment tells the AI to change the key. Nothing changes.
+5. **A reply that says "fixed" before the fix is live.** When a case waits for a teacher, the student gets a different reply: "a teacher will check". A false "fixed" makes the student doubt every later reply.
 
 ## One metric for week 1
 
-**The auto-fix revert rate:** the share of automatic fixes that a teacher undoes later. The audit log records it.
+**The auto-fix revert rate:** of the automatic fixes that a teacher checked, the share that the teacher undid. The audit log records both numbers.
+
+I watch it together with the share of auto-fixes that teachers checked. If nobody checks, a rate of 0 proves nothing.
 
 - If it is above 0, I find the cause and make the rule that let the fix through stricter.
-- If it stays at 0, more repair types can go to auto-apply. Then teachers spend less time on safe fixes.
+- If it stays at 0 and teachers check most auto-fixes, more repair types can go to auto-apply. Then teachers spend less time on safe fixes.
 
 ## One idea beyond the brief: find broken questions before anyone reports them
 
