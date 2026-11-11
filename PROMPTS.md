@@ -259,6 +259,13 @@ List any real defect in this question that no report covers, with the repair and
 - **Fix:** Each save now runs in one locked database transaction. In a test, I sent 20 approvals at the same time. Only 1 was saved.
 - **Lesson:** "Check, then save" needs a lock.
 
+### 9. Each save opened a new database connection
+
+- **Error:** Each approve or reject opened a new connection to Supabase in Sydney. Then it made 5 round trips. One click took approximately 4 seconds.
+- **How I found it:** I tested the app and found that approve and reject were very slow. The AI then measured each step.
+- **Fix:** A connection pool keeps connections open. A save now needs 2 round trips, not 5. The screen shows the decision at once, and the save runs in the background. A failed save rolls back and shows an error.
+- **Lesson:** Measure first. The slow part was the network, not the code.
+
 ---
 
 ## 4. My design decisions
