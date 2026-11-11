@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import psycopg
 
-from database import Connection, database_url, placeholder, run
+from database import Connection, database_url, run_with_connection, sql_placeholder
 
 COLUMNS = ("id", "report_id", "question_id", "action", "edits", "reply", "note", "reviewer", "created_at")
 INSERT_COLUMNS = COLUMNS[1:]
@@ -27,6 +27,9 @@ class NewAuditEntry:
     reviewer: str
 
 
+EntryPlan = Callable[[dict[str, dict]], list[NewAuditEntry]]
+
+
 def create_audit_table() -> None:
     primary_key = "BIGSERIAL PRIMARY KEY" if database_url() else "INTEGER PRIMARY KEY AUTOINCREMENT"
 
@@ -45,7 +48,7 @@ def create_audit_table() -> None:
             )""")
         connection.execute("CREATE INDEX IF NOT EXISTS audit_log_report ON audit_log (report_id, id)")
 
-    run(create)
+    run_with_connection(create)
 
 
 def row_to_entry(row: dict | sqlite3.Row) -> dict:
@@ -64,12 +67,12 @@ def read_standing_decisions(connection: Connection) -> dict[str, dict]:
 
 
 def standing_decisions() -> dict[str, dict]:
-    return run(read_standing_decisions)
+    return run_with_connection(read_standing_decisions)
 
 
 def build_insert(entries: list[NewAuditEntry]) -> tuple[str, list]:
     created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    row_marks = "(" + ", ".join([placeholder()] * len(INSERT_COLUMNS)) + ")"
+    row_marks = "(" + ", ".join([sql_placeholder()] * len(INSERT_COLUMNS)) + ")"
     values = [value for entry in entries for value in (entry.report_id, entry.question_id, entry.action,
                                                        json.dumps(entry.edits, ensure_ascii=False), entry.reply, entry.note,
                                                        entry.reviewer, created_at)]
@@ -83,7 +86,7 @@ def sorted_entries(rows: list) -> list[dict]:
     return sorted((row_to_entry(row) for row in rows), key=lambda entry: entry["id"])
 
 
-def write_postgres(connection: psycopg.Connection, plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
+def write_postgres(connection: psycopg.Connection, plan: EntryPlan) -> list[dict]:
     # Supabase is far away. Send all statements in 2 round trips.
     cursor = psycopg.ClientCursor(connection)
     try:
@@ -103,7 +106,7 @@ def write_postgres(connection: psycopg.Connection, plan: Callable[[dict[str, dic
         raise
 
 
-def write_sqlite(connection: sqlite3.Connection, plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
+def write_sqlite(connection: sqlite3.Connection, plan: EntryPlan) -> list[dict]:
     # BEGIN IMMEDIATE takes the write lock at once, so no other request can write between the check and the insert.
     connection.execute("BEGIN IMMEDIATE")
     try:
@@ -116,11 +119,11 @@ def write_sqlite(connection: sqlite3.Connection, plan: Callable[[dict[str, dict]
     return sorted_entries(rows)
 
 
-def write_entries(plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
+def write_entries(plan: EntryPlan) -> list[dict]:
     """One locked transaction. If plan raises, nothing is saved."""
-    return run(lambda connection: write_postgres(connection, plan) if isinstance(connection, psycopg.Connection)
+    return run_with_connection(lambda connection: write_postgres(connection, plan) if isinstance(connection, psycopg.Connection)
                else write_sqlite(connection, plan))
 
 
 def list_audit_entries() -> list[dict]:
-    return run(lambda connection: [row_to_entry(row) for row in connection.execute(f"{SELECT_COLUMNS} ORDER BY id DESC").fetchall()])
+    return run_with_connection(lambda connection: [row_to_entry(row) for row in connection.execute(f"{SELECT_COLUMNS} ORDER BY id DESC").fetchall()])

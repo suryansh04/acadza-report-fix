@@ -7,7 +7,7 @@ from typing import TypeVar
 
 import psycopg
 from psycopg.rows import dict_row
-from psycopg_pool import ConnectionPool
+from psycopg_pool import ConnectionPool, PoolTimeout
 
 LOCAL_DATABASE = Path(__file__).resolve().parent / "audit.sqlite3"
 
@@ -25,9 +25,14 @@ def open_pool() -> None:
     global _pool
     if database_url() and _pool is None:
         # No server-side prepared statements: they break behind a transaction-mode pooler such as Supabase's port 6543.
-        _pool = ConnectionPool(database_url(), min_size=1, max_size=5, open=True, name="audit",
-                               kwargs={"row_factory": dict_row, "autocommit": True, "prepare_threshold": None})
-        _pool.wait()
+        pool = ConnectionPool(database_url(), min_size=1, max_size=5, open=True, name="audit",
+                              kwargs={"row_factory": dict_row, "autocommit": True, "prepare_threshold": None})
+        try:
+            pool.wait()
+        except PoolTimeout as error:
+            pool.close()
+            raise RuntimeError("Could not connect to the database in DATABASE_URL. Check the URL in .env, or in the Render settings.") from error
+        _pool = pool
 
 
 def close_pool() -> None:
@@ -39,13 +44,10 @@ def close_pool() -> None:
 
 @contextmanager
 def _connection() -> Iterator[Connection]:
-    if _pool is not None:
-        with _pool.connection() as connection:
-            yield connection
-        return
     if database_url():
-        # Scripts that never opened the pool still get a working connection.
-        with closing(psycopg.connect(database_url(), row_factory=dict_row, autocommit=True, prepare_threshold=None)) as connection:
+        # The server opens the pool at start. Code that runs without the server opens it here, on first use.
+        open_pool()
+        with _pool.connection() as connection:
             yield connection
         return
     connection = sqlite3.connect(LOCAL_DATABASE, isolation_level=None, timeout=10)
@@ -54,8 +56,8 @@ def _connection() -> Iterator[Connection]:
         yield connection
 
 
-def run(work: Callable[[Connection], Result]) -> Result:
-    """Supabase can drop an idle connection. That fails before any write, so one retry is safe."""
+def run_with_connection(work: Callable[[Connection], Result]) -> Result:
+    """Supabase can drop an idle connection, so retry once. A retry cannot save twice: each save reads the decisions again."""
     try:
         with _connection() as connection:
             return work(connection)
@@ -64,5 +66,5 @@ def run(work: Callable[[Connection], Result]) -> Result:
             return work(connection)
 
 
-def placeholder() -> str:
+def sql_placeholder() -> str:
     return "%s" if database_url() else "?"
