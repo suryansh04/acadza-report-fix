@@ -138,6 +138,7 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
             <InsightRow icon={TriangleAlert} tone="text-warn" title={`${plural(teacherReports.length, "report")} sent to you`} text="Changes to content, and cases where the engine is not sure." />
             <InsightRow icon={OctagonAlert} tone="text-bad" title={`${plural(unreported, "defect")} nobody reported`} text="Nothing changes until a teacher decides." />
           </div>
+          <p className="px-1 text-xs text-muted-foreground">Saved results of the last engine run. The console does not call the AI.</p>
         </Panel>
 
         <Panel icon={Scale} color="var(--tone-red)" title="Verdicts" badge={<Pill tone="plain" className="py-2">{plural(reports.length, "report")}</Pill>} tinted className="min-h-85.5">
