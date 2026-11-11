@@ -4,7 +4,7 @@ import type { Case } from "@/api"
 import { TrendUpIcon } from "@/components/icons"
 import { IconChip, Panel, Pill } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
-import { REPAIR_LABELS, VERDICT_LABELS, casesInQueue, countOpenReports, countUnreported, estimateReviewMinutes, greetingForNow, reportState } from "@/lib/cases"
+import { VERDICT_LABELS, casesInQueue, countOpenReports, countUnreported, countWrongKeysFixed, estimateReviewMinutes, greetingForNow, repairLabel, reportState } from "@/lib/cases"
 import { stripHtml } from "@/lib/html"
 import type { Page } from "@/lib/navigation"
 import type { IconComponent } from "@/lib/pages"
@@ -72,7 +72,7 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
   const teacherDone = teacherReports.filter((report) => report.teacher_action).length
   const openReports = countOpenReports(cases)
   const autoFixed = reports.filter((report) => report.route === "auto_apply").length
-  const keysFixed = new Set(reports.filter((report) => report.route === "auto_apply" && report.repair === "answer_key").map((report) => report.question_id)).size
+  const keysFixed = countWrongKeysFixed(cases)
   const studentWrong = reports.filter((report) => report.verdict === "no_error").length
   const unreported = countUnreported(cases)
   const progress = teacherReports.length === 0 ? 100 : Math.round((teacherDone / teacherReports.length) * 100)
@@ -155,11 +155,11 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
           <div className="flex flex-1 flex-col gap-2">
             {needsYou.length === 0 && <p className="rounded-xl bg-muted p-4 text-sm text-muted-foreground">Nothing is waiting for you.</p>}
             {needsYou.slice(0, 4).map((item) => {
-              const repair = item.reports.find((report) => reportState(report) === "needs_you")?.repair
+              const open = item.reports.find((report) => reportState(report) === "needs_you")
               return (
                 <button key={item.questionId} type="button" onClick={() => onNavigate("needs-you", item.questionId)}
                   className="flex flex-col gap-1.5 rounded-xl bg-muted px-3 py-2 text-left transition-colors hover:bg-accent">
-                  <p className="text-sm font-medium">{repair ? REPAIR_LABELS[repair] ?? repair : "Check"} · {item.subject}</p>
+                  <p className="text-sm font-medium">{open?.repair ? repairLabel(open.repair, open.edits) : "Check"} · {item.subject}</p>
                   <p className="line-clamp-1 text-[13px] text-muted-foreground">{stripHtml(item.before.question_html)}</p>
                 </button>
               )

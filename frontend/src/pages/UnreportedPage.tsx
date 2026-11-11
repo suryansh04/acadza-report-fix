@@ -5,7 +5,7 @@ import { MathHtml } from "@/components/ChangePreview"
 import { EditDiff } from "@/components/EditDiff"
 import { Panel, Pill } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
-import { REPAIR_LABELS, queueForCase } from "@/lib/cases"
+import { queueForCase, repairLabel } from "@/lib/cases"
 import type { Page } from "@/lib/navigation"
 
 export function UnreportedPage({ cases, onNavigate }: { cases: Case[]; onNavigate: (page: Page, questionId: string) => void }) {
@@ -27,7 +27,7 @@ export function UnreportedPage({ cases, onNavigate }: { cases: Case[]; onNavigat
             <div className="flex flex-col gap-3">
               {item.other_defects.map((defect, index) => (
                 <div key={index} className="flex flex-col gap-2 text-sm">
-                  <p className="max-w-[65ch]"><span className="font-medium text-warn">{REPAIR_LABELS[defect.repair] ?? defect.repair}: </span>{defect.evidence}</p>
+                  <p className="max-w-[65ch]"><span className="font-medium text-warn">{repairLabel(defect.repair, defect.edits)}: </span>{defect.evidence}</p>
                   {defect.edits.map((edit, editIndex) => <EditDiff key={editIndex} edit={edit} />)}
                 </div>
               ))}

@@ -35,6 +35,27 @@ export const REPAIR_LABELS: Record<string, string> = {
   syllabus: "Syllabus",
 }
 
+function answerTokens(answer: string): string[] {
+  return answer.toUpperCase().match(/\b[A-D]\b|-?\d+(\.\d+)?/g) ?? []
+}
+
+// An "answer_key" fix can keep the same answer and only repair how the key is stored, for example "['A, B, D']".
+function fixesOnlyKeyFormat(edits: Edit[]): boolean {
+  const keyEdit = edits.find((edit) => edit.field === "answer")
+  return keyEdit !== undefined && answerTokens(keyEdit.find).join() === answerTokens(keyEdit.replace).join()
+}
+
+export function repairLabel(repair: string, edits: Edit[] = []): string {
+  if (repair === "answer_key" && fixesOnlyKeyFormat(edits)) return "Answer key format"
+  return REPAIR_LABELS[repair] ?? repair
+}
+
+/** Questions where an automatic fix gave a different answer, not only a new key format. */
+export function countWrongKeysFixed(cases: Case[]): number {
+  return cases.filter((item) => item.reports.some((report) =>
+    report.route === "auto_apply" && report.repair === "answer_key" && !fixesOnlyKeyFormat(report.edits))).length
+}
+
 export const QUESTION_TYPE_LABELS: Record<string, string> = { scq: "Single correct", mcq: "Multiple correct", integerQuestion: "Integer" }
 
 export const ACTION_LABELS: Record<ActionName, string> = { approve: "Approved", edit: "Edited", reject: "Rejected", undo: "Undone" }

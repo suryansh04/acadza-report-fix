@@ -13,7 +13,6 @@ import type { ConfirmAll } from "@/hooks/use-decisions"
 import { useKeydown } from "@/hooks/use-keydown"
 import {
   LOW_CONFIDENCE,
-  REPAIR_LABELS,
   type QueueName,
   type QueueSort,
   type SessionStats,
@@ -25,6 +24,7 @@ import {
   estimateReviewMinutes,
   lowestConfidence,
   queueReports,
+  repairLabel,
   reportState,
   studentsReported,
 } from "@/lib/cases"
@@ -131,7 +131,7 @@ function scrollRowIntoQueueView(row: HTMLElement) {
 }
 
 function QueueRow({ item, queue, selected, onClick }: { item: Case; queue: QueueName; selected: boolean; onClick: () => void }) {
-  const repairs = [...new Set(item.reports.map((report) => report.repair).filter(Boolean))] as string[]
+  const repairs = [...new Set(item.reports.flatMap((report) => report.repair ? [repairLabel(report.repair, report.edits)] : []))]
   const pending = item.reports.filter((report) => reportState(report) === "needs_you").length
   const finished = caseIsFinished(item, queue)
   const lowConfidence = !finished && lowestConfidence(item) < LOW_CONFIDENCE
@@ -159,7 +159,7 @@ function QueueRow({ item, queue, selected, onClick }: { item: Case; queue: Queue
       </div>
       <p className={cn("line-clamp-2 text-sm", finished && "text-muted-foreground")}>{stripHtml(item.before.question_html)}</p>
       <div className="flex flex-wrap items-center gap-1.5">
-        {repairs.map((repair) => <Pill key={repair} tone="muted" className="px-2 py-0.5 text-[11px] group-aria-current:bg-background">{REPAIR_LABELS[repair] ?? repair}</Pill>)}
+        {repairs.map((repair) => <Pill key={repair} tone="muted" className="px-2 py-0.5 text-[11px] group-aria-current:bg-background">{repair}</Pill>)}
         {lowConfidence && <Pill tone="warn" className="px-2 py-0.5 text-[11px]"><TriangleAlert className="size-3" /> Low confidence</Pill>}
         <span className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground">
           {finished ? <><Check className="size-3.5 text-live" /> Checked</> : pending > 0 && `${pending} open`}
@@ -211,7 +211,7 @@ function CaseDetail({ item, queue, advancing, onSubmit, onNext }: CaseDetailProp
             <h2 className="flex items-center gap-2 font-medium"><SearchCheck className="size-4.5 text-muted-foreground" /> Also found <Pill tone="muted">No student reported this</Pill></h2>
             {item.other_defects.map((defect, index) => (
               <div key={index} className="flex flex-col gap-1 rounded-xl bg-muted px-3 py-2.5 text-sm">
-                <p className="font-medium">{REPAIR_LABELS[defect.repair] ?? defect.repair}</p>
+                <p className="font-medium">{repairLabel(defect.repair, defect.edits)}</p>
                 <p className="text-muted-foreground">{defect.evidence}</p>
               </div>
             ))}

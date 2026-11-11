@@ -8,7 +8,7 @@ import { IconChip, Pill, type Tone } from "@/components/Panel"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { Textarea } from "@/components/ui/textarea"
-import { ACTION_LABELS, LOW_CONFIDENCE, REPAIR_LABELS, VERDICT_LABELS, editsInEffect, formatDateTime, reportState } from "@/lib/cases"
+import { ACTION_LABELS, LOW_CONFIDENCE, VERDICT_LABELS, editsInEffect, formatDateTime, repairLabel, reportState } from "@/lib/cases"
 import { useKeydown } from "@/hooks/use-keydown"
 import { shouldIgnoreShortcut } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
@@ -45,7 +45,7 @@ const VERDICT_FINDINGS: Record<string, string> = {
 }
 
 function repairName(report: Report): string | null {
-  return report.repair ? REPAIR_LABELS[report.repair] ?? report.repair : null
+  return report.repair ? repairLabel(report.repair, report.edits) : null
 }
 
 // The AI verdict in one line, so a tired teacher knows the result before reading the details.
@@ -73,7 +73,7 @@ function actionHint(report: Report): string {
   if (report.route === "auto_apply") return "Keep the fix, or undo it."
   if (report.route === "no_change") return "Agree to send the reply, or disagree."
   if (report.edits.length > 0) return "Approve to apply the fix, or edit it first."
-  return "Approve to confirm and send the reply."
+  return "Approve to confirm."
 }
 
 function ConfidenceMeter({ value }: { value: number }) {
@@ -236,8 +236,9 @@ export function ReportCard({ report, current, focused, onSubmit }: ReportCardPro
         </div>
       ) : (
         <div className="rounded-xl bg-period-bg p-3 text-sm">
-          <p className="mb-1 text-xs font-medium text-period">Reply the student will see</p>
+          <p className="mb-1 text-xs font-medium text-period">{report.route === "faculty_review" ? "Reply to the student" : "Reply the student will see"}</p>
           <p className="max-w-[65ch]">{decision?.reply || report.reply}</p>
+          {report.route === "faculty_review" && <p className="mt-1.5 text-xs text-muted-foreground">The student already has this reply.</p>}
         </div>
       )}
 
