@@ -61,8 +61,8 @@ function InsightRow({ icon: Icon, tone, title, text }: { icon: IconComponent; to
   )
 }
 
-function plural(count: number, word: string): string {
-  return `${count} ${word}${count === 1 ? "" : "s"}`
+function plural(count: number, word: string, pluralWord = `${word}s`): string {
+  return `${count} ${count === 1 ? word : pluralWord}`
 }
 
 export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; reviewer: string; onNavigate: (page: Page, questionId?: string) => void }) {
@@ -134,7 +134,7 @@ export function HomePage({ cases, reviewer, onNavigate }: { cases: Case[]; revie
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Panel icon={Sparkles} color="var(--tone-indigo)" title="Engine summary" badge={<Pill tone="plain" className="py-2">This run</Pill>} tinted className="min-h-85.5">
           <div className="flex flex-1 flex-col gap-2">
-            <InsightRow icon={CircleCheck} tone="text-good" title={`${plural(autoFixed, "fix")} applied`} text="Only safe fixes, and keys that three independent answers agree on." />
+            <InsightRow icon={CircleCheck} tone="text-good" title={`${plural(autoFixed, "fix", "fixes")} applied`} text="Only safe fixes, and keys that three independent answers agree on." />
             <InsightRow icon={TriangleAlert} tone="text-warn" title={`${plural(teacherReports.length, "report")} sent to you`} text="Changes to content, and cases where the engine is not sure." />
             <InsightRow icon={OctagonAlert} tone="text-bad" title={`${plural(unreported, "defect")} nobody reported`} text="Nothing changes until a teacher decides." />
           </div>
