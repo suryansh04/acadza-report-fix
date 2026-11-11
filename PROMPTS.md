@@ -11,15 +11,13 @@ This file shows how I used AI to build this project. It has 4 parts:
 
 ## 1. The prompts in my product
 
-The engine uses 2 AI prompts. Code does all other work.
-
-Each prompt returns a Pydantic model. This is a fixed data format, and code checks each field.
+The engine uses 2 AI prompts. Code does all other work. Each prompt returns a Pydantic model: a fixed data format in which code checks each field.
 
 ### Solver
 
 **Job:** It solves the question with no help. It does not see the answer key, the stored solution or the student comments.
 
-**Models:** Sonnet 5.5 and Opus 5.5 solve each question. If their answers are different, Opus 5.5 solves the question again. It then uses its highest effort level (`xhigh`).
+**Models:** Sonnet 5.5 and Opus 5.5 solve each question. If their answers are different, Opus 5.5 solves again at its highest effort (`xhigh`).
 
 **File:** [engine/prompts/solver.md](engine/prompts/solver.md). Output: `SolverResult` (working, value, answer, status, note).
 
@@ -52,22 +50,22 @@ Rules:
 
 **Changes:**
 
-- **v1:** The first version. It used a JSON schema for the output. **Result:** On all 43 questions, both models gave my expected answers. They found the 4 wrong keys, the 2 questions with missing data and the empty option.
-- **v1.1:** I changed the output to Pydantic models. **Problem:** 2 Sonnet answers became incorrect. In R004, the working said "matches option D". But the status said "no option matches". The cause: `status` was the first field. Thus, the model chose the status before it did the working.
-- **v2:** I put the fields in the same order as the thinking: working, value, answer, status, note. I also added the rule "Choose the status last". **Result:** Both solvers gave the same status on all 43 questions.
-- **v3:** I told the AI to do a full check. A new run with an empty cache found a problem. In R011, option C is empty, and Sonnet guessed its text. I added the rule "A blank or missing option never matches". **Result:** I did 2 more full runs. In both runs, all 43 answers agree with my expected answers.
+- **v1:** The first version, with a JSON schema for the output. **Result:** On all 43 questions, both models gave my expected answers. They found the 4 wrong keys, the 2 questions with missing data and the empty option.
+- **v1.1:** I changed the output to Pydantic models. **Problem:** 2 Sonnet answers became wrong. In R004, the working said "matches option D", but the status said "no option matches". The cause: `status` was the first field, so the model chose the status before the working.
+- **v2:** I put the fields in the order of the thinking: working, value, answer, status, note. I added the rule "Choose the status last". **Result:** Both solvers gave the same status on all 43 questions.
+- **v3:** A full run with an empty cache found a new problem. In R011, option C is empty, and Sonnet guessed its text. I added the rule "A blank or missing option never matches". **Result:** In 2 more full runs, all 43 answers agree with my expected answers.
 
 ### Judge
 
 **Job:** It reads all reports on one question. For each report, it gives a verdict, a repair, an edit, the evidence and 2 replies to the student. It also lists defects that no student reported.
 
 - The **verdict** says if the student is right.
-- The **repair** is the type of fix that is necessary.
+- The **repair** is the type of fix.
 - The **edit** is the exact change to the question.
 
-**Model:** Sonnet 5.5, with one call for each question.
+**Model:** Sonnet 5.5, one call for each question.
 
-**File:** [engine/prompts/judge.md](engine/prompts/judge.md). Output: `JudgeResult`. The verdict and repair fields accept only the labels in the taxonomy. The taxonomy is the list of allowed labels.
+**File:** [engine/prompts/judge.md](engine/prompts/judge.md). Output: `JudgeResult`. The verdict and repair fields accept only the labels in the taxonomy (the list of permitted labels).
 
 <details>
 <summary><b>Prompt (version 4, verbatim)</b></summary>
@@ -142,12 +140,12 @@ List any real defect in this question that no report covers, with the repair and
 
 </details>
 
-**Changes:** For each version, I compared the output with my own expected verdict and repair for the 44 reports.
+**Changes:** For each version, I compared the output with my expected verdict and repair for the 44 reports.
 
-- **v1:** The first version. **Problem:** 42 of 44 correct. It said that a question with only 3 options was "fine". It replied in Hinglish to students who wrote in English. In one type edit, it used a description instead of the stored value `mcq`.
-- **v2:** I added 3 rules. A question always has 4 options. The reply uses the language of the student. A type edit uses the stored value. **Problem:** Still 42 of 44, because the results for R032 and R034 changed. For these 2 reports, the correct verdict was not clear. I decided them myself: both are `defect`.
-- **v3:** I added 2 rules. A defect counts if it is in the part that the student talks about. A solution must end at the answer in the key. **Problem:** 44 of 44 correct, but a second run gave 43 of 44. The report "slow load" became `app_issue`.
-- **v4:** I added a rule: use the examples that the taxonomy gives for each label. **Result:** 44 of 44 correct in 2 separate runs. One judge run costs approximately $0.83.
+- **v1:** **Problem:** 42 of 44 correct. It said that a question with only 3 options was fine. It replied in Hinglish to students who wrote in English. In one type edit, it wrote a description in place of the stored value `mcq`.
+- **v2:** I added 3 rules: a question always has 4 options, the reply uses the student's language, and a type edit uses the stored value. **Problem:** Still 42 of 44, because R032 and R034 changed. Their correct verdict was not clear, so I decided them myself: both are `defect`.
+- **v3:** I added 2 rules: a defect counts if it is in the part that the student talks about, and a solution must end at the key's answer. **Problem:** 44 of 44, but a second run gave 43 of 44. "Slow load" became `app_issue`.
+- **v4:** I added a rule: use the examples that the taxonomy gives for each label. **Result:** 44 of 44 in 2 separate runs. One judge run costs about $0.83.
 
 ---
 
@@ -157,7 +155,7 @@ List any real defect in this question that no report covers, with the repair and
 
 1. **Prompt:** "Keep the file structure simple, not complicated. Also install the Andrej Karpathy skills for this project."
    **Why:** AI tools often add too many files and layers.
-   **Result:** Each job has one small file. The skill tells the AI to write only the code that is necessary.
+   **Result:** Each job has one small file. The skill tells the AI to write only the necessary code.
 
 2. **Prompt:** "Is this the best you can think of? This step is crucial. Think more thoroughly."
    **Why:** I wanted a check of the first engine design for weak points.
@@ -165,47 +163,67 @@ List any real defect in this question that no report covers, with the repair and
 
 3. **Prompt:** "Choose between Haiku, Sonnet and Opus. Fable is too expensive for this."
    **Why:** I wanted good accuracy at a fair cost.
-   **Result:** Sonnet and Opus solve the questions, and Sonnet judges the reports. Haiku is not strong enough for difficult physics. A full run costs $1.43.
+   **Result:** Sonnet and Opus solve, and Sonnet judges. Haiku is not strong enough for difficult physics. A full run costs $1.43.
 
 4. **Prompt:** "Should the teacher be able to edit anything? Tell me if there is a reason to check the teacher's fix."
-   **Why:** The guards control the AI, not the teacher. The guards are code rules that check each AI edit.
-   **Result:** The teacher can edit any field. The backend shows format warnings with "Save anyway". It never blocks the teacher.
+   **Why:** The guards are code rules that control the AI, not the teacher.
+   **Result:** The teacher can edit any field. A format problem shows a warning with "Save anyway". It never blocks the teacher.
 
 5. **Prompt:** "Are you sure? Should we not make it agentic, because there are so many rules?"
    **Why:** I wanted to know if a fixed sequence of steps is the correct design.
-   **Result:** The AI kept the fixed steps, for 3 reasons. The steps are always the same. Code must make the safety decisions. Each run must give the same result.
+   **Result:** The AI kept the fixed steps. The steps are always the same, code must make the safety decisions, and each run must give the same result.
 
 6. **Prompt:** "Continue to ask me questions like this." (after the R030 verdict)
-   **Why:** For some reports, the correct verdict is not clear. I must make that decision.
-   **Result:** Now the AI asks me before it decides an unclear verdict.
+   **Why:** For some reports, the correct verdict is not clear. That decision is mine.
+   **Result:** The AI now asks me before it decides an unclear verdict.
 
 7. **Prompt:** "Review every file in a loop. If there is a bug, find a fix, then look for a better fix. Check the code against CLAUDE.md."
-   **Why:** A high score can hide bugs. These bugs show only on new inputs.
+   **Why:** A high score can hide bugs that show only on new inputs.
    **Result:** The AI found and fixed 4 bugs and 1 security problem.
 
 8. **Prompt:** "Test the pipeline again, thoroughly, against rough and harder test cases."
    **Why:** The 44 given reports were the only test.
-   **Result:** The AI wrote 21 harder cases. They found 6 problems that the 44/44 score did not show. All 6 are fixed. The hard set now scores 21/21.
+   **Result:** The AI wrote 21 harder cases. They found 6 problems that the 44/44 score did not show. All 6 are fixed, and the hard set scores 21/21.
 
 9. **Prompt:** "The frontend does not match the theme at all. Look at the image and the reference."
    **Why:** I chose the Watermelon "Bionis" dashboard as the design.
-   **Result:** The AI downloaded the real Bionis source code. Then it built the console again on that code.
+   **Result:** The AI downloaded the real Bionis source code and built the console again on it.
 
 10. **Prompt:** "Find ways to reduce the friction for teachers, so they can review 10 times faster. Even a tired person should enjoy the app."
     **Why:** A teacher reviews many reports in a row, often at the end of a long day.
-    **Result:** The AI added auto-advance to the next question, an undo key, a confirm-all button and progress bars. Now 6 reports take 6 key presses.
+    **Result:** Auto-advance to the next question, an undo key, a confirm-all button and progress bars. 6 reports take 6 key presses.
 
 11. **Prompt:** "Do a code review and fix the bugs with the best possible solution." (for the engine, the frontend and the backend)
-    **Why:** A second reviewer finds errors that the author did not see. This is also true when the author is an AI.
+    **Why:** A second reviewer finds errors that the author did not see, also when the author is an AI.
     **Result:** Each review found real bugs. See part 3, cases 4, 7 and 8.
 
 12. **Prompt:** "Separate the backend code into modules, but keep the file structure very simple. Suggest a plan, but do not make it complex."
     **Why:** `main.py` and `db.py` were too long to read and maintain.
-    **Result:** The backend now has 4 files, each with one job: `main.py` for the app and the routes, `edit_checks.py` for the checks on a teacher's edit, `database.py` for the connection, and `audit_log.py` for the audit log. The code did not change. The backend tests gave the same output before and after. See part 3, case 10.
+    **Result:** 4 files, each with one job: `main.py` (the app and the routes), `edit_checks.py` (the checks on a teacher's edit), `database.py` (the connection) and `audit_log.py` (the audit log). The backend tests gave the same output before and after. See part 3, case 10.
 
-13. **Prompt:** "Verify the backend code against our CLAUDE.md. Check everything thoroughly, and take your time."
-    **Why:** The rules in CLAUDE.md are only useful if the code follows them.
+13. **Prompt:** "Remove or shorten the docstrings. Write them only where they are necessary, because they make the code harder to read."
+    **Why:** Long comments that repeat the code hide the code.
+    **Result:** The AI removed the comments that only repeat the code. It kept short comments that explain a "why".
+
+14. **Prompt:** "Verify the backend code against our CLAUDE.md. Check everything thoroughly, and take your time."
+    **Why:** The rules in CLAUDE.md help only if the code follows them.
     **Result:** The AI found 1 real bug and 6 small rule problems. All are fixed. See part 3, case 11.
+
+15. **Prompt:** "Nobody can guess what this component is about. Give a very short reason. The layout is confusing: I go back and forth between the report and the question. Search the web for case studies on layouts for people who get too much information."
+    **Why:** A teacher at 10 PM must understand each part of the screen at once.
+    **Result:** Short explanations on unclear parts, a new layout, a pointer cursor on links, "Saved" in place of "Saved to Supabase", and a soft sound on J and K. The new layout still needed work (see prompt 16).
+
+16. **Prompt:** "Show the AI confidence, because a teacher must check a low score more carefully. Sort by most reported. Show how many students reported each question. Add a right panel like NotebookLM, with an 'AI verdict'. Explain in at most 50 words what the AI did. Show the correct option in green."
+    **Why:** The first new layout removed things that helped, and it still mixed the question and the reports.
+    **Result:** 3 panels: the queue, the question and the reports. Each report shows the AI verdict, its confidence and a short summary. The correct option is green. The app menu closes by itself on the review pages. See part 3, case 12.
+
+17. **Prompt:** "Do a code review of the frontend and fix the bugs. Then search the web for how to write a great README, and write it again from the start. Use simple English (ASD-STE100) and Excalidraw diagrams. Take your time and verify it thoroughly."
+    **Why:** The new UI needed a review. The README is the first page that a reviewer reads.
+    **Result:** The review found 10 problems, and the AI fixed 9 (see part 3, case 13). The README has 2 Excalidraw diagrams and 3 screenshots. The AI tested each command in it on a clean install.
+
+18. **Prompt:** "Update every doc. Make sure that they are not too long, in ASD-STE100, and very readable."
+    **Why:** A reviewer has little time for each doc.
+    **Result:** Shorter sentences and fewer words in README.md, PRODUCT.md and this file. The facts did not change.
 
 ---
 
@@ -216,13 +234,13 @@ List any real defect in this question that no report covers, with the repair and
 - **Error:** It read the website and said that these components did not exist.
 - **How I found it:** I opened the website myself and sent screenshots.
 - **Fix:** We now use Watermelon UI first.
-- **Lesson:** The web tool of the AI read only the empty frame of the page. Check claims about a website yourself.
+- **Lesson:** The AI's web tool read only the empty frame of the page. Check claims about a website yourself.
 
 ### 2. Its vote step had gaps
 
-- **Error:** It compared the answers as plain text. Thus, "3113" and "3112.99" were different answers. Also, a solution from a different question still counted as a vote.
+- **Error:** It compared answers as plain text, so "3113" and "3112.99" were different. Also, a solution from a different question still counted as a vote.
 - **How I found it:** I asked "Are you sure this is the best step?"
-- **Fix:** Code now puts all answers in the same form first. It removes votes that are not valid. A third solver decides when the first two disagree.
+- **Fix:** Code now puts all answers in the same form first and removes votes that are not valid. A third solver decides when the first two disagree.
 - **Lesson:** Ask the AI to check its own design again.
 
 ### 3. It wanted to change a verdict because of a harmless display detail
@@ -234,21 +252,21 @@ List any real defect in this question that no report covers, with the repair and
 
 ### 4. Its own bug fix caused a new bug
 
-- **Error:** It made the number tolerance smaller. The tolerance is the permitted difference between two numbers. Then 0.67 and 0.6667 did not match. Thus, the engine could "fix" a correct key.
-- **How I found it:** A separate code review of that change found it.
+- **Error:** It made the number tolerance (the permitted difference between two numbers) smaller. Then 0.67 and 0.6667 did not match, and the engine could "fix" a correct key.
+- **How I found it:** A separate code review of that change.
 - **Fix:** The tolerance is now the larger of 0.01% and 0.005.
 - **Lesson:** A fix needs its own review.
 
 ### 5. Its console did not look like the design I chose
 
-- **Error:** It built the console from its memory of the Bionis dashboard. Only the colors were similar.
+- **Error:** It built the console from its memory of the Bionis dashboard. Only the colours were similar.
 - **How I found it:** I compared the two side by side.
 - **Fix:** It built the console again from the real Bionis source code.
 - **Lesson:** Give the AI the source code of a design, not only its name.
 
 ### 6. Its queue counts were wrong
 
-- **Error:** The "No change" queue counted 4 questions that have no reports. A rule like "every report is no_change" is true for an empty list. Also, "Keep all fixes" could approve a report that waited for a teacher.
+- **Error:** The "No change" queue counted 4 questions with no reports, because "every report is no_change" is true for an empty list. Also, "Keep all fixes" could approve a report that waited for a teacher.
 - **How I found it:** The UX review compared the counts on the screen with the data.
 - **Fix:** A queue needs at least 1 report. A bulk action changes only the reports of its own queue.
 - **Lesson:** Compare what the screen shows with the data.
@@ -257,36 +275,51 @@ List any real defect in this question that no report covers, with the repair and
 
 - **Error:** For example, two fast key presses saved two decisions. Also, AI output could run a script in the page.
 - **How I found it:** A code review of the frontend.
-- **Fix:** The server now accepts one decision for each report. Undo uses the id of the decision. DOMPurify, a safety library, cleans all HTML before the page shows it.
+- **Fix:** The server accepts one decision for each report. Undo uses the id of the decision. DOMPurify, a safety library, cleans all HTML before the page shows it.
 - **Lesson:** Review the UI code too, not only the engine.
 
 ### 8. Its "one decision for each report" rule had a race
 
-- **Error:** The server first checked for a decision. Then it saved in a second step. Two requests at the same time could both save.
+- **Error:** The server checked for a decision, then saved in a second step. Two requests at the same time could both save.
 - **How I found it:** A code review of the backend.
-- **Fix:** Each save now runs in one locked database transaction. In a test, I sent 20 approvals at the same time. Only 1 was saved.
+- **Fix:** Each save runs in one locked database transaction. In a test, I sent 20 approvals at the same time. Only 1 was saved.
 - **Lesson:** "Check, then save" needs a lock.
 
 ### 9. Each save opened a new database connection
 
-- **Error:** Each approve or reject opened a new connection to Supabase in Sydney. Then it made 5 round trips. One click took approximately 4 seconds.
-- **How I found it:** I tested the app and found that approve and reject were very slow. The AI then measured each step.
-- **Fix:** A connection pool keeps connections open. A save now needs 2 round trips, not 5. The screen shows the decision at once, and the save runs in the background. A failed save rolls back and shows an error.
+- **Error:** Each approve or reject opened a new connection to Supabase in Sydney and made 5 round trips. One click took about 4 seconds.
+- **How I found it:** I tested the app, and approve and reject were very slow. Then the AI measured each step.
+- **Fix:** A connection pool keeps connections open, and a save needs 2 round trips, not 5. The screen shows the decision at once and saves in the background. A failed save rolls back and shows an error.
 - **Lesson:** Measure first. The slow part was the network, not the code.
 
 ### 10. It changed the file structure without asking me
 
-- **Error:** I asked it to split the backend. It chose the structure itself and made 10 files in 2 folders. Then it pushed the change to GitHub.
+- **Error:** I asked it to split the backend. It chose the structure itself, made 10 files in 2 folders, and pushed the change to GitHub.
 - **How I found it:** I read its report after the push.
-- **Fix:** It reverted the change. It then suggested a simpler plan with 4 files, and it waited for my approval before it made the change.
+- **Fix:** It reverted the change. Then it suggested a simpler plan with 4 files and waited for my approval.
 - **Lesson:** A structural decision is mine. The AI must suggest a plan first, then wait for my answer.
 
 ### 11. "Save anyway" saved edits that cannot be applied
 
-- **Error:** The AI wrote the edit checks. "Save anyway" skipped all of them. Thus, the server saved edits that can never be applied, for example text that is not in the solution, or two changes in the same place. The first fix of the AI was not complete: the frontend could not show the error.
-- **How I found it:** The AI found the bug when it checked the backend against CLAUDE.md. Then I asked "Is that the best you can suggest?"
-- **Fix:** The server now refuses an edit that cannot be applied, even with "Save anyway". The message tells the teacher what to do. Format warnings still have "Save anyway".
+- **Error:** "Save anyway" skipped all edit checks. The server saved edits that can never be applied, for example text that is not in the solution. The AI's first fix was not complete: the frontend could not show the error.
+- **How I found it:** The AI found the bug in its check against CLAUDE.md. Then I asked "Is that the best you can suggest?"
+- **Fix:** The server refuses an edit that cannot be applied, also with "Save anyway". The message tells the teacher what to do. Format warnings still have "Save anyway".
 - **Lesson:** Ask again after the first fix. The second answer looked at the full path, from the server to the screen.
+
+### 12. Its new layout removed things that helped
+
+- **Error:** In the first new layout, it removed the AI confidence and replaced the "Before → After" view with the arrow. I had liked both.
+- **How I found it:** I reviewed the screenshots of the new layout.
+- **Fix:** Both came back. The confidence now shows as a meter, with a warning below 70%.
+- **Lesson:** A redesign must keep what works. Tell the AI what to keep, not only what to change.
+
+### 13. Its UI code had hidden bugs, and its HTML cleaner deleted options
+
+- **Error:** In an "Assertion (A)" question, the green colour could mark the word "(A)" in the question text. The J and K sounds played when nothing moved. Earlier, its HTML cleaner deleted options B to D on one question, because stray math tags confused the safety library.
+- **How I found it:** A code review of the frontend found the first bugs. The AI found the missing options in its own screenshot check.
+- **Fix:** Only the real option labels turn green. The sound plays only on a real move. The cleaner now unwraps the stray tags before it cleans the HTML. The review found 10 problems, and 9 are fixed.
+- **Not fixed:** The review said that the engine must clean the stray tags. An engine change changes what the AI sees, so all AI calls run again and cost money. The fix stays in the browser for now.
+- **Lesson:** Look at the real screen with the real data, not only at the code.
 
 ---
 
@@ -294,14 +327,14 @@ List any real defect in this question that no report covers, with the repair and
 
 ### 1. Code first, AI second
 
-- **Problem:** Many checks are simple, for example an empty option or a bad key format. AI can make errors on these checks.
+- **Problem:** Many checks are simple, for example an empty option or a bad key format. AI can make errors on them.
 - **Decision:** Code does the simple checks. AI only solves, judges and writes the replies.
-- **Why:** Code is free and fast. It gives the same result each time.
+- **Why:** Code is free and fast, and it gives the same result each time.
 - **Dropped:** One large prompt that does all the work.
 
 ### 2. Blind solvers
 
-- **Problem:** An AI that sees the key or the claim of the student often agrees with it.
+- **Problem:** An AI that sees the key or the student's claim often agrees with it.
 - **Decision:** Two solvers on different models see only the question.
 - **Why:** Their answers are independent.
 - **Dropped:** One solve only. One error could then change a correct key.
@@ -310,62 +343,63 @@ List any real defect in this question that no report covers, with the repair and
 
 - **Problem:** An AI is often too sure of its answer. Also, a student comment can try to give orders to the AI (R027).
 - **Decision:**
-  - Code decides the route: auto-fix, teacher review or no change. Code also calculates the confidence.
+  - Code decides the route (auto-fix, teacher review or no change) and calculates the confidence.
   - A key changes only when 2 solvers and the stored solution all agree against it.
   - Each comment goes inside `<comment>` tags, and the AI treats it as data only.
-- **Why:** A wrong auto-fix harms every student. A student comment cannot change a rule in code.
-- **Dropped:** The confidence score of the AI.
+- **Why:** A wrong auto-fix harms every student. A comment cannot change a rule in code.
+- **Dropped:** The AI's own confidence score.
 
 ### 4. Guards on every AI edit
 
 - **Problem:** The AI can edit a field that its repair does not permit.
 - **Decision:** Code checks the permitted fields and the size of each edit. It tests the edit on a copy of the question. It uses one fix for each defect.
-- **Why:** In a test, I gave the guards 11 incorrect AI answers. All 11 went to a teacher.
-- **Dropped:** Use of the AI edit with no check.
+- **Why:** In a test, I gave the guards 11 wrong AI answers. All 11 went to a teacher.
+- **Dropped:** AI edits with no check.
 
-### 5. A real defect counts, even if the claim of the student is wrong
+### 5. A real defect counts, even if the student's claim is wrong
 
-- **Problem:** In R004, the answer of the student is wrong. But the key is also wrong.
+- **Problem:** In R004, the student's answer is wrong, but the key is also wrong.
 - **Decision:** The verdict is `defect` when the defect is about what the student reported. A defect with no connection goes to the "unreported" list.
 - **Why:** `no_error` means "checked and correct".
-- **Dropped:** A verdict on the claim only. Real defects would then stay in the questions.
+- **Dropped:** A verdict on the claim only. Real defects would stay in the questions.
 
 ### 6. Tests against my own answers
 
 - **Problem:** A score on the given data does not prove that the engine works.
-- **Decision:** I wrote expected answers for the 44 reports. I also wrote 21 harder test cases.
+- **Decision:** I wrote expected answers for the 44 reports and 21 harder test cases.
 - **Why:** The hard cases found 6 problems that the 44/44 score did not show.
 - **Dropped:** Trust in one good run.
 
 ### 7. The plain Anthropic SDK
 
 - **Problem:** I had to choose how to call the AI.
-- **Decision:** The `anthropic` Python SDK, with Pydantic output and a cache. The cache keeps each AI answer on disk.
-- **Why:** The 8 steps always run in the same order. The prompts stay exactly as written. The cache prevents a second payment for the same call.
+- **Decision:** The `anthropic` Python SDK, with Pydantic output and a cache on disk for each AI answer.
+- **Why:** The 8 steps always run in the same order, and the prompts stay exactly as written. The cache prevents a second payment for the same call.
 - **Dropped:** LangChain and LangGraph. They add layers that this project does not need.
 
 ### 8. One app, saved results and Supabase
 
 - **Problem:** The console must stay online for 7 days, also with no AI credits.
-- **Decision:** React and FastAPI in one deploy. The console reads the saved engine results. The audit log is in a Supabase Postgres database.
+- **Decision:** React and FastAPI in one deploy. The console reads the saved engine results. The audit log is in Supabase Postgres.
 - **Why:** One URL means fewer parts that can fail. The log is the same on every device.
 - **Dropped:** Streamlit, two separate deploys, and browser storage for the log.
 
 ### 9. The teacher can edit anything
 
 - **Problem:** The guards control the AI. Must they also control the teacher?
-- **Decision:** The teacher can edit any field. A format problem shows a warning with "Save anyway". Only an edit that cannot be applied is refused, and the message tells the teacher how to correct it.
+- **Decision:** The teacher can edit any field. A format problem shows a warning with "Save anyway". The server refuses only an edit that cannot be applied, and it tells the teacher how to correct it.
 - **Why:** The teacher is the expert and makes the final decision.
-- **Dropped:** Guards that block the edits of the teacher.
+- **Dropped:** Guards that block the teacher's edits.
 
 ### 10. A console for a tired teacher
 
 - **Problem:** A teacher reviews many reports in a row. Each click and each scroll takes time.
 - **Decision:**
   - A calm design, based on the Watermelon "Bionis" dashboard.
-  - The report and its buttons are at the top of the page.
+  - 3 panels, like NotebookLM: the queue, the question and the reports. Nothing needs a scroll back and forth.
   - Keyboard keys, auto-advance, an undo key, a confirm-all button and progress bars.
-  - A soft sound plays when the teacher saves a review.
+  - The AI confidence on each report, with a warning below 70%.
+  - Soft sounds on a save and on J and K.
 - **Why:** 6 reports take 6 key presses. 23 auto-fixes take 2 clicks.
 - **Dropped:** A page of charts. It shows data, but it does not help the teacher act.
 
@@ -375,3 +409,10 @@ List any real defect in this question that no report covers, with the repair and
 - **Decision:** The server accepts one decision for each report, in a locked transaction. Undo uses the id of the decision.
 - **Why:** The audit log must be correct.
 - **Dropped:** A check in the browser only.
+
+### 12. "Most reported" first
+
+- **Problem:** The urgency score is hard to read at a glance.
+- **Decision:** The queue opens sorted by the number of students who reported each question. "Most urgent" is one click away.
+- **Why:** A teacher understands a count at once, and many reports mean many affected students.
+- **Dropped:** Urgency as the only order.
