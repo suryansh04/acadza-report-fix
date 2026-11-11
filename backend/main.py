@@ -59,8 +59,10 @@ def load_cases() -> list[dict]:
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     load_env_file()
+    db.open_pool()
     db.create_audit_table()
     yield
+    db.close_pool()
 
 
 app = FastAPI(title="Acadza Report Fix", lifespan=lifespan)
