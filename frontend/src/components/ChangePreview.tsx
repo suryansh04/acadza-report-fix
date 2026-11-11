@@ -3,7 +3,7 @@ import { type Ref, type RefObject, useEffect, useMemo, useRef } from "react"
 import type { Case, Edit } from "@/api"
 import { AnswerCheck } from "@/components/AnswerCheck"
 import { BeforeAfterValue } from "@/components/EditDiff"
-import { correctOptionLetters, formatAnswer } from "@/lib/cases"
+import { correctOptionLetters, formatAnswer, keyIsInDoubt } from "@/lib/cases"
 import { buildDiffHtml, sanitizeHtml, stripHtml } from "@/lib/html"
 import { cn } from "@/lib/utils"
 
@@ -133,7 +133,8 @@ export function ChangePreview({ item, edits, solutionOpen, onSolutionToggle }: C
       )}
 
       <ValueRow label="Answer key" value={formatAnswer(item.before.answer)} change={edits.find((edit) => edit.field === "answer")}
-        note={canHighlightOptions(shownQuestion, letters) ? "The correct option is green in the question." : undefined} />
+        note={keyIsInDoubt(item, edits) ? "No option is green, because the engine found that this key may be wrong."
+          : canHighlightOptions(shownQuestion, letters) ? "The correct option is green in the question." : undefined} />
       {typeEdit && <ValueRow label="Question type" value={typeEdit.find} change={typeEdit} />}
       <AnswerCheck vote={item.vote} />
 

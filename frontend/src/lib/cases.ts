@@ -126,8 +126,17 @@ export function studentsReported(count: number): string {
 }
 
 /** The option letters of the key that is live now: the teacher's or the engine's new key, otherwise the stored one. */
+// Repairs that say the stored key may not be the correct answer.
+const KEY_IN_DOUBT_REPAIRS = new Set(["answer_key", "unsound"])
+
+/** True when the engine doubts the stored key and no edit gives a new key. Then no option may look correct. */
+export function keyIsInDoubt(item: Case, edits: Edit[]): boolean {
+  if (edits.some((edit) => edit.field === "answer")) return false
+  return [...item.reports, ...item.other_defects].some((defect) => KEY_IN_DOUBT_REPAIRS.has(defect.repair ?? ""))
+}
+
 export function correctOptionLetters(item: Case, edits: Edit[]): string[] {
-  if (item.questionType === "integerQuestion") return []
+  if (item.questionType === "integerQuestion" || keyIsInDoubt(item, edits)) return []
   const keyEdit = edits.find((edit) => edit.field === "answer")
   const key = keyEdit ? keyEdit.replace : formatAnswer(item.before.answer)
   return key.toUpperCase().match(/\b[A-D]\b/g) ?? []
