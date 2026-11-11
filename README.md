@@ -4,7 +4,7 @@ Students report errors in JEE and NEET questions. Report Fix checks each report 
 
 ![The teacher console: the queue on the left, the question in the middle, the student reports on the right](docs/images/console-review.png)
 
-**Links:** Live console: _the link will be added after deployment_ · Demo video: _the link will be added_ · [Prompts and decisions](PROMPTS.md) · [Product notes](PRODUCT.md) · [Original task](docs/BRIEF.md)
+**Links:** [Live console](https://acadza-report-fix-90b2.onrender.com) · Demo video: _the link will be added_ · [Prompts and decisions](PROMPTS.md) · [Product notes](PRODUCT.md) · [Original task](docs/BRIEF.md)
 
 ## Contents
 
