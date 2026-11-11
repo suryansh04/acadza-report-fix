@@ -96,8 +96,11 @@ More features:
 - **Safe edits.** The teacher can edit any field. A format problem shows a warning, and the teacher can still save. The server refuses only an edit that it cannot apply, and the message tells how to correct it.
 - **Audit log.** Each action records the teacher's name and the time. An undo is a new entry. Nothing is deleted.
 - **Sounds.** A soft chime plays on each save and a soft tick on J and K. They come from [sensory-ui](https://www.sensory-ui.com/) (MIT). The speaker button turns them off.
+- **Unreported defects.** A separate page shows the 5 defects that no student reported, each with the fix that the engine suggests.
 
 ![The dashboard: review progress, key numbers and the questions to do first](docs/images/console-dashboard.png)
+
+![The unreported defects: each one shows the question and the suggested fix as "Before → After"](docs/images/console-unreported.png)
 
 ## Safety rules
 
@@ -170,13 +173,19 @@ Open http://localhost:5173. The frontend sends its API calls to port 8000.
 
 ## Deploy
 
+The live console runs at https://acadza-report-fix-90b2.onrender.com.
+
 The Render Blueprint (`render.yaml`) makes one free web service in Singapore. This is near the teachers in India and the database in Sydney.
 
 1. In Render, click **New**, then **Blueprint**, and select this repo.
-2. Set `DATABASE_URL` to the Supabase connection string.
-3. Deploy. The health check is `/api/health`.
+2. Give the Blueprint a name, and keep the branch `main`.
+3. Set `DATABASE_URL` to the Supabase **Session pooler** connection string. The free plan cannot reach the direct database address.
+4. Click **Deploy Blueprint**.
+5. Open `/api/health`. It must show `{"status":"ok","database":"supabase"}`.
 
-The built console (`frontend/dist`) is in the repo, so the deploy needs only Python.
+The built console (`frontend/dist`) is in the repo, so the deploy needs only Python. Each push to `main` deploys again.
+
+**Keep it awake.** The free plan sleeps after 15 minutes with no visits. An [UptimeRobot](https://uptimerobot.com) monitor opens `/api/health` every 5 minutes, so the service does not sleep.
 
 ## Project structure
 
@@ -217,6 +226,6 @@ To change a diagram, open its file from `docs/diagrams/` at [excalidraw.com](htt
 ## Known limits
 
 - **No login.** The teacher types a name, and the browser keeps it. The audit log trusts this name.
-- **The free Render plan sleeps** after 15 minutes with no visits. The next visit takes about 1 minute.
+- **The free Render plan can sleep.** The UptimeRobot monitor keeps it awake. If the monitor stops, the first visit after a sleep takes about 1 minute.
 - **The engine runs as a batch.** A new report needs a new run of `engine/run.py`.
 - **The green option** needs the CSS Custom Highlight API: Chrome or Edge 105+, Safari 17.2+ or Firefox 140+. Other browsers show the question without the green colour.
