@@ -89,7 +89,12 @@ export function ReportCard({ report, current, focused, onSubmit }: ReportCardPro
 
   // A whole-field change the teacher opened but did not change is not a change.
   const editsToSave = () => draftEdits.filter((edit) => edit.find !== edit.replace)
-  const saveEdit = (saveAnyway = false) => submit("edit", { edits: editsToSave(), reply: draftReply, saveAnyway })
+  const saveEdit = (saveAnyway = false) => {
+    const edits = editsToSave()
+    // Nothing changed is an approval, not an edit. The server refuses an empty edit for the same reason.
+    if (edits.length === 0 && [report.reply.trim(), ""].includes(draftReply.trim())) return submit("approve")
+    return submit("edit", { edits, reply: draftReply, saveAnyway })
+  }
 
   const cancelEdit = () => {
     setEditing(false)
