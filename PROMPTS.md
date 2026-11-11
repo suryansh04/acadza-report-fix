@@ -50,7 +50,7 @@ Rules:
 
 **Changes:**
 
-- **v1:** The first version, with a JSON schema for the output. **Result:** On all 43 questions, both models gave my expected answers. They found the 4 wrong keys, the 2 questions with missing data and the empty option.
+- **v1:** The first version, with a JSON schema for the output. **Result:** On all 43 questions, both models gave my expected answers. They found the 3 wrong keys, the 2 questions with missing data and the empty option.
 - **v1.1:** I changed the output to Pydantic models. **Problem:** 2 Sonnet answers became wrong. In R004, the working said "matches option D", but the status said "no option matches". The cause: `status` was the first field, so the model chose the status before the working.
 - **v2:** I put the fields in the order of the thinking: working, value, answer, status, note. I added the rule "Choose the status last". **Result:** Both solvers gave the same status on all 43 questions.
 - **v3:** A full run with an empty cache found a new problem. In R011, option C is empty, and Sonnet guessed its text. I added the rule "A blank or missing option never matches". **Result:** In 2 more full runs, all 43 answers agree with my expected answers.
@@ -154,180 +154,121 @@ List any real defect in this question that no report covers, with the repair and
 **Tool:** Claude Code. I corrected the spelling and grammar of each prompt. The meaning did not change.
 
 1. **Prompt:** "Keep the file structure simple, not complicated. Also install the Andrej Karpathy skills for this project."
-   **Why:** AI tools often add too many files and layers.
-   **Result:** Each job has one small file. The skill tells the AI to write only the necessary code.
+   **Why:** AI tools add files and layers that nobody asked for. A rule set before any code exists is easier to enforce.
+   **Result:** Each job has one small file. Later, the AI broke the rule (10 backend files), and I stopped it.
 
-2. **Prompt:** "Is this the best you can think of? This step is crucial. Think more thoroughly."
-   **Why:** I wanted a check of the first engine design for weak points.
+2. **Prompt:** "This step is crucial, so do not give me your first design. Find its weak points, fix them, and then give me the final design in the same format."
+   **Why:** A first design often has gaps that its author does not see. I wanted the AI to attack its own design before we built it.
    **Result:** The AI found 6 gaps. For example, the design had only one solve, and the AI gave its own confidence score. The corrected design became the 8-step engine.
 
-3. **Prompt:** "Choose between Haiku, Sonnet and Opus. Fable is too expensive for this."
+3. **Prompt:** "Pick the models from Haiku, Sonnet and Opus. Fable is too expensive for a step that runs on every report. Match each model to how hard its step is."
    **Why:** I wanted good accuracy at a fair cost.
    **Result:** Sonnet and Opus solve, and Sonnet judges. Haiku is not strong enough for difficult physics. A full run costs $1.43.
 
-4. **Prompt:** "Should the teacher be able to edit anything? Tell me if there is a reason to check the teacher's fix."
-   **Why:** The guards are code rules that control the AI, not the teacher.
+4. **Prompt:** "The guards are there to control the AI, not the teacher. Let the teacher edit any field and only show a warning for a format problem. Tell me if there is a real reason to block a teacher's edit."
+   **Why:** The teacher is the expert. A tool that blocks the expert is a tool that the expert stops using.
    **Result:** The teacher can edit any field. A format problem shows a warning with "Save anyway". It never blocks the teacher.
 
-5. **Prompt:** "Are you sure? Should we not make it agentic, because there are so many rules?"
-   **Why:** I wanted to know if a fixed sequence of steps is the correct design.
-   **Result:** The AI kept the fixed steps. The steps are always the same, code must make the safety decisions, and each run must give the same result.
-
-6. **Prompt:** "Continue to ask me questions like this." (after the R030 verdict)
+5. **Prompt:** "When a verdict is a judgment call, do not decide it yourself. Ask me first, as you did for R030."
    **Why:** For some reports, the correct verdict is not clear. That decision is mine.
    **Result:** The AI now asks me before it decides an unclear verdict.
 
-7. **Prompt:** "Review every file in a loop. If there is a bug, find a fix, then look for a better fix. Check the code against CLAUDE.md."
+6. **Prompt:** "Do not trust the 44 of 44 score. Read every file in a loop and look for bugs that a new input would show. For each bug, find a fix, then look for a better fix. Check the code against CLAUDE.md."
    **Why:** A high score can hide bugs that show only on new inputs.
    **Result:** The AI found and fixed 4 bugs and 1 security problem.
 
-8. **Prompt:** "Test the pipeline again, thoroughly, against rough and harder test cases."
+7. **Prompt:** "The engine was tuned on the 44 given reports, so they are not a fair test. Write harder cases that try to break it: prompt injection, two defects on one question, wrong units and multi-answer keys. Run them, and fix what fails."
    **Why:** The 44 given reports were the only test.
    **Result:** The AI wrote 21 harder cases. They found 6 problems that the 44/44 score did not show. All 6 are fixed, and the hard set scores 21/21.
 
-9. **Prompt:** "The frontend does not match the theme at all. Look at the image and the reference."
-   **Why:** I chose the Watermelon "Bionis" dashboard as the design.
-   **Result:** The AI downloaded the real Bionis source code and built the console again on it.
+8. **Prompt:** "The user is a tired teacher at 10 PM. Remove every extra click: open the next question by itself, add an undo key and a confirm-all button, and show the progress. Aim for a review that is 10 times faster, and that a tired person enjoys."
+   **Why:** A teacher reviews many reports in a row, often at the end of a long day.
+   **Result:** Auto-advance to the next question, an undo key, a confirm-all button and progress bars. 6 reports take 6 key presses.
 
-10. **Prompt:** "Find ways to reduce the friction for teachers, so they can review 10 times faster. Even a tired person should enjoy the app."
-    **Why:** A teacher reviews many reports in a row, often at the end of a long day.
-    **Result:** Auto-advance to the next question, an undo key, a confirm-all button and progress bars. 6 reports take 6 key presses.
+9. **Prompt:** "Check each part on its own: the engine, the backend and the frontend. Look first for bugs that can harm data, for example a double save or a script in the page. Fix each one with the best solution, not the first one that works."
+   **Why:** A second reviewer finds errors that the author did not see, also when the author is an AI.
+   **Result:** Each check found real bugs.
 
-11. **Prompt:** "Do a code review and fix the bugs with the best possible solution." (for the engine, the frontend and the backend)
-    **Why:** A second reviewer finds errors that the author did not see, also when the author is an AI.
-    **Result:** Each review found real bugs. See part 3, cases 4, 7 and 8.
-
-12. **Prompt:** "Separate the backend code into modules, but keep the file structure very simple. Suggest a plan, but do not make it complex."
+10. **Prompt:** "`main.py` and `db.py` are too long. Split them, but keep the structure flat: a few files, each with one job, and no new folders. Show me the plan first."
     **Why:** `main.py` and `db.py` were too long to read and maintain.
-    **Result:** 4 files, each with one job: `main.py` (the app and the routes), `edit_checks.py` (the checks on a teacher's edit), `database.py` (the connection) and `audit_log.py` (the audit log). The backend tests gave the same output before and after. See part 3, case 10.
+    **Result:** 4 files, each with one job: `main.py` (the app and the routes), `edit_checks.py` (the checks on a teacher's edit), `database.py` (the connection) and `audit_log.py` (the audit log). The backend tests gave the same output before and after.
 
-13. **Prompt:** "Remove or shorten the docstrings. Write them only where they are necessary, because they make the code harder to read."
+11. **Prompt:** "The docstrings repeat what the code already says, and they hide the code. Remove them. Keep a comment only where it explains why the code does something."
     **Why:** Long comments that repeat the code hide the code.
     **Result:** The AI removed the comments that only repeat the code. It kept short comments that explain a "why".
 
-14. **Prompt:** "Verify the backend code against our CLAUDE.md. Check everything thoroughly, and take your time."
+12. **Prompt:** "Go through CLAUDE.md rule by rule, and check the backend against each one. A rule that the code does not follow is a bug. Take your time."
     **Why:** The rules in CLAUDE.md help only if the code follows them.
-    **Result:** The AI found 1 real bug and 6 small rule problems. All are fixed. See part 3, case 11.
+    **Result:** The AI found 1 real bug and 6 small rule problems. All are fixed.
 
-15. **Prompt:** "Nobody can guess what this component is about. Give a very short reason. The layout is confusing: I go back and forth between the report and the question. Search the web for case studies on layouts for people who get too much information."
+13. **Prompt:** (my ideas after I used the console)
+    - "Each part of the screen needs a short line that says what it is for."
+    - "Put the report and the question side by side, so that I do not go back and forth."
+    - "Use a pointer cursor on links and buttons."
+    - "Write 'Saved', not 'Saved to Supabase'."
+    - "Play a soft sound from sensory-ui when I press J."
+    - "Search the web for layouts for people who get too much information."
+
     **Why:** A teacher at 10 PM must understand each part of the screen at once.
-    **Result:** Short explanations on unclear parts, a new layout, a pointer cursor on links, "Saved" in place of "Saved to Supabase", and a soft sound on J and K. The new layout still needed work (see prompt 16).
+    **Result:** Short explanations on unclear parts, a new layout, a pointer cursor on links, "Saved", and a soft sound on J and K. The new layout still needed work (see prompt 14).
 
-16. **Prompt:** "Show the AI confidence, because a teacher must check a low score more carefully. Sort by most reported. Show how many students reported each question. Add a right panel like NotebookLM, with an 'AI verdict'. Explain in at most 50 words what the AI did. Show the correct option in green."
+14. **Prompt:** (my review of the first new layout)
+    - "Keep the AI confidence. A teacher must check a 50% verdict more carefully than a 90% one."
+    - "Sort the queue by most reported, and show on each question how many students reported it."
+    - "Move the reports to a panel on the right, like NotebookLM, and call it 'AI verdict'."
+    - "Explain what the AI did in 50 words or fewer."
+    - "Show the correct MCQ option in green, so that the teacher sees it at once."
+    - "Close the left menu smoothly on the review pages, so that the question gets the space."
+
     **Why:** The first new layout removed things that helped, and it still mixed the question and the reports.
-    **Result:** 3 panels: the queue, the question and the reports. Each report shows the AI verdict, its confidence and a short summary. The correct option is green. The app menu closes by itself on the review pages. See part 3, case 12.
+    **Result:** 3 panels: the queue, the question and the reports. Each report shows the AI verdict, its confidence and a short summary. The correct option is green. The app menu closes by itself on the review pages.
 
-17. **Prompt:** "Do a code review of the frontend and fix the bugs. Then search the web for how to write a great README, and write it again from the start. Use simple English (ASD-STE100) and Excalidraw diagrams. Take your time and verify it thoroughly."
-    **Why:** The new UI needed a review. The README is the first page that a reviewer reads.
-    **Result:** The review found 10 problems, and the AI fixed 9 (see part 3, case 13). The README has 2 Excalidraw diagrams and 3 screenshots. The AI tested each command in it on a clean install.
+15. **Prompt:** "The green colour, the sounds and the menu are new. Look for bugs in them before we write any docs. Then write the README again in this order: the problem, the results, how it works with an Excalidraw architecture diagram, the console with screenshots, the safety rules, the cost, a quick start that a new person can copy, and the known limits. Use ASD-STE100, and verify each command."
+    **Why:** New UI code had no check yet. The README is the first page that a reviewer reads, so it must be correct and easy to follow.
+    **Result:** The AI found 10 problems and fixed 9. The README has 2 Excalidraw diagrams and 4 screenshots. The AI tested each command in it on a clean install.
 
-18. **Prompt:** "Update every doc. Make sure that they are not too long, in ASD-STE100, and very readable."
+16. **Prompt:** "Write every doc for a reviewer who has little time. Use ASD-STE100: short sentences, one idea in each sentence, simple words and no emoji. Cut each doc to what the reader needs, and keep every fact the same."
     **Why:** A reviewer has little time for each doc.
     **Result:** Shorter sentences and fewer words in README.md, PRODUCT.md and this file. The facts did not change.
 
-19. **Prompt:** "Is Render the best option, or can we use Modal or a Google Cloud backend?"
+17. **Prompt:** "When the teacher presses J, scroll down automatically as well."
+    **Why:** J opened a question below the visible part of the queue, so the teacher lost the selected row.
+    **Result:** The queue now scrolls to the selected question on J, K and auto-advance.
+
+18. **Prompt:** "Is Render the best option, or can we use Modal or a Google Cloud backend?"
     **Why:** The free Render plan sleeps, and the first visit then takes about 1 minute.
     **Result:** We kept Render and added an UptimeRobot monitor. See part 4, decision 13.
 
-20. **Prompt:** "Update the README. Check each sentence and make sure that it is up to date. Add new images and the links."
-    **Why:** The README must describe the live app, not an older version.
-    **Result:** The AI checked each fact against the code and the data. It took new screenshots from the live console and added the live link and the deploy steps. It also found and fixed a typo on the dashboard ("23 fixs applied").
+19. **Prompt:** "Why is D green here? No option fits. Find more bugs like this, and fix them."
+    **Why:** The console showed a wrong key as the correct answer. A teacher who trusts the green colour could approve a broken question.
+    **Result:** No option is green now when the engine doubts the key. The search found 2 more bugs. The dashboard counted 4 wrong keys, but only 3 were wrong. A "Needs you" reply did not say that the student already has it. All 3 bugs are fixed.
 
 ---
 
 ## 3. Times the AI was wrong
 
-### 1. It said Watermelon UI had no table or badge components
+These are the 3 most critical cases. Each one could have harmed students or teachers if I had not stopped it.
 
-- **Error:** It read the website and said that these components did not exist.
-- **How I found it:** I opened the website myself and sent screenshots.
-- **Fix:** We now use Watermelon UI first.
-- **Lesson:** The AI's web tool read only the empty frame of the page. Check claims about a website yourself.
+### 1. Its vote step could change a correct answer key
 
-### 2. Its vote step had gaps
+- **Error:** The first vote step compared answers as plain text, so "3113" and "3112.99" were different answers. It also counted the vote of a solution from a different question (R018). With these gaps, the engine could "fix" a correct key, and every student would then get marked wrong.
+- **How I caught it:** The AI said that the vote step was ready. I did not accept it, and I asked: "Are you sure this is the best step for this?" Then the AI checked its design again and found 4 gaps.
+- **Fix:** Code puts all answers in the same form first, for example numbers with a small tolerance and multi-answer keys as sets. It removes votes that are not valid. A third solver decides when the first two disagree. With fewer than 3 valid votes, a teacher decides.
+- **Lesson:** "Ready" from the AI is a first draft. On a safety step, always ask for a second check before any code exists.
 
-- **Error:** It compared answers as plain text, so "3113" and "3112.99" were different. Also, a solution from a different question still counted as a vote.
-- **How I found it:** I asked "Are you sure this is the best step?"
-- **Fix:** Code now puts all answers in the same form first and removes votes that are not valid. A third solver decides when the first two disagree.
-- **Lesson:** Ask the AI to check its own design again.
+### 2. It wanted to call a correct question defective (R030)
 
-### 3. It wanted to change a verdict because of a harmless display detail
+- **Error:** In R030, the unit is inside the square root (`4 √(2 m)`). The AI called this a real defect and was not sure if the verdict must change.
+- **How I caught it:** I asked "Are you sure about R030?" Then I told it: "4 √(2 m) and 4√2 m are the same thing" for a student. Every student reads it as 4√2 metres, so the meaning does not change.
+- **Fix:** R030 stays `no_error`. I added a rule to the judge prompt: a display detail that does not change the meaning for a student is not a defect.
+- **Lesson:** "Technically wrong" is not the same as "harmful to a student". A teacher's judgement decides this, not the AI.
 
-- **Error:** In R030, the unit is inside the square root (`4 √(2 m)`). The AI wanted to call this a defect.
-- **How I found it:** I said that every student reads it as 4√2 m. The meaning does not change.
-- **Fix:** R030 stays `no_error`. New rule: a display detail that does not change the meaning is not a defect.
-- **Lesson:** "Technically wrong" is not the same as "harmful to a student".
+### 3. Each approve or reject took about 4 seconds
 
-### 4. Its own bug fix caused a new bug
-
-- **Error:** It made the number tolerance (the permitted difference between two numbers) smaller. Then 0.67 and 0.6667 did not match, and the engine could "fix" a correct key.
-- **How I found it:** A separate code review of that change.
-- **Fix:** The tolerance is now the larger of 0.01% and 0.005.
-- **Lesson:** A fix needs its own review.
-
-### 5. Its console did not look like the design I chose
-
-- **Error:** It built the console from its memory of the Bionis dashboard. Only the colours were similar.
-- **How I found it:** I compared the two side by side.
-- **Fix:** It built the console again from the real Bionis source code.
-- **Lesson:** Give the AI the source code of a design, not only its name.
-
-### 6. Its queue counts were wrong
-
-- **Error:** The "No change" queue counted 4 questions with no reports, because "every report is no_change" is true for an empty list. Also, "Keep all fixes" could approve a report that waited for a teacher.
-- **How I found it:** The UX review compared the counts on the screen with the data.
-- **Fix:** A queue needs at least 1 report. A bulk action changes only the reports of its own queue.
-- **Lesson:** Compare what the screen shows with the data.
-
-### 7. A code review found 10 bugs in its console code
-
-- **Error:** For example, two fast key presses saved two decisions. Also, AI output could run a script in the page.
-- **How I found it:** A code review of the frontend.
-- **Fix:** The server accepts one decision for each report. Undo uses the id of the decision. DOMPurify, a safety library, cleans all HTML before the page shows it.
-- **Lesson:** Review the UI code too, not only the engine.
-
-### 8. Its "one decision for each report" rule had a race
-
-- **Error:** The server checked for a decision, then saved in a second step. Two requests at the same time could both save.
-- **How I found it:** A code review of the backend.
-- **Fix:** Each save runs in one locked database transaction. In a test, I sent 20 approvals at the same time. Only 1 was saved.
-- **Lesson:** "Check, then save" needs a lock.
-
-### 9. Each save opened a new database connection
-
-- **Error:** Each approve or reject opened a new connection to Supabase in Sydney and made 5 round trips. One click took about 4 seconds.
-- **How I found it:** I tested the app, and approve and reject were very slow. Then the AI measured each step.
+- **Error:** Each save opened a new connection to Supabase in Sydney and made 5 round trips. The code looked correct, and no check found a problem.
+- **How I caught it:** I used the console myself as a teacher would, and I reported the bug: "When the teacher accepts or rejects, the process is very slow." Then the AI measured each step.
 - **Fix:** A connection pool keeps connections open, and a save needs 2 round trips, not 5. The screen shows the decision at once and saves in the background. A failed save rolls back and shows an error.
-- **Lesson:** Measure first. The slow part was the network, not the code.
-
-### 10. It changed the file structure without asking me
-
-- **Error:** I asked it to split the backend. It chose the structure itself, made 10 files in 2 folders, and pushed the change to GitHub.
-- **How I found it:** I read its report after the push.
-- **Fix:** It reverted the change. Then it suggested a simpler plan with 4 files and waited for my approval.
-- **Lesson:** A structural decision is mine. The AI must suggest a plan first, then wait for my answer.
-
-### 11. "Save anyway" saved edits that cannot be applied
-
-- **Error:** "Save anyway" skipped all edit checks. The server saved edits that can never be applied, for example text that is not in the solution. The AI's first fix was not complete: the frontend could not show the error.
-- **How I found it:** The AI found the bug in its check against CLAUDE.md. Then I asked "Is that the best you can suggest?"
-- **Fix:** The server refuses an edit that cannot be applied, also with "Save anyway". The message tells the teacher what to do. Format warnings still have "Save anyway".
-- **Lesson:** Ask again after the first fix. The second answer looked at the full path, from the server to the screen.
-
-### 12. Its new layout removed things that helped
-
-- **Error:** In the first new layout, it removed the AI confidence and replaced the "Before → After" view with the arrow. I had liked both.
-- **How I found it:** I reviewed the screenshots of the new layout.
-- **Fix:** Both came back. The confidence now shows as a meter, with a warning below 70%.
-- **Lesson:** A redesign must keep what works. Tell the AI what to keep, not only what to change.
-
-### 13. Its UI code had hidden bugs, and its HTML cleaner deleted options
-
-- **Error:** In an "Assertion (A)" question, the green colour could mark the word "(A)" in the question text. The J and K sounds played when nothing moved. Earlier, its HTML cleaner deleted options B to D on one question, because stray math tags confused the safety library.
-- **How I found it:** A code review of the frontend found the first bugs. The AI found the missing options in its own screenshot check.
-- **Fix:** Only the real option labels turn green. The sound plays only on a real move. The cleaner now unwraps the stray tags before it cleans the HTML. The review found 10 problems, and 9 are fixed.
-- **Not fixed:** The review said that the engine must clean the stray tags. An engine change changes what the AI sees, so all AI calls run again and cost money. The fix stays in the browser for now.
-- **Lesson:** Look at the real screen with the real data, not only at the code.
+- **Lesson:** Use the product yourself. A slow click does not show in a code review, and a teacher who waits 4 seconds for each click stops using the tool.
 
 ---
 
