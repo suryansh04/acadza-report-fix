@@ -88,7 +88,7 @@ export type ActionRequest = {
   save_anyway?: boolean
 }
 
-export type ActionResult = { saved: true; entry: TeacherAction } | { saved: false; warnings: string[] }
+export type ActionResult = { saved: true; entry: TeacherAction } | { saved: false; problems: string[]; canSaveAnyway: boolean }
 
 /** The server refused because the data changed meanwhile, for example a second tab already decided this report. */
 export class ConflictError extends Error {}
@@ -122,10 +122,11 @@ export function fetchAuditLog(): Promise<TeacherAction[]> {
 
 export async function saveAction(request: ActionRequest): Promise<ActionResult> {
   const response = await postJson("/api/actions", request)
-  // A 409 with warnings means the edit has format problems. The teacher can still save it on purpose.
-  if (response.status === 409) {
-    const body = await response.clone().json().catch(() => ({}))
-    if (Array.isArray(body.detail?.warnings)) return { saved: false, warnings: body.detail.warnings }
+  // Errors mean the edit cannot be applied, so it is never saved. Warnings are format problems the teacher may accept.
+  if (response.status === 409 || response.status === 422) {
+    const detail = (await response.clone().json().catch(() => ({}))).detail
+    if (Array.isArray(detail?.errors)) return { saved: false, problems: detail.errors, canSaveAnyway: false }
+    if (Array.isArray(detail?.warnings)) return { saved: false, problems: detail.warnings, canSaveAnyway: true }
   }
   return { saved: true, entry: await readJson<TeacherAction>(response) }
 }

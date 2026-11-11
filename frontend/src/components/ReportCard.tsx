@@ -55,7 +55,8 @@ export function ReportCard({ report, current, focused, onSubmit }: ReportCardPro
   const [editing, setEditing] = useState(false)
   const [draftEdits, setDraftEdits] = useState<Edit[]>(report.edits)
   const [draftReply, setDraftReply] = useState(report.reply)
-  const [warnings, setWarnings] = useState<string[]>([])
+  const [problems, setProblems] = useState<string[]>([])
+  const [canSaveAnyway, setCanSaveAnyway] = useState(true)
   const [busy, setBusy] = useState(false)
   // A ref, not state: two key presses in a row must not both start a save before React re-renders.
   const saving = useRef(false)
@@ -68,23 +69,24 @@ export function ReportCard({ report, current, focused, onSubmit }: ReportCardPro
     saving.current = false
     setBusy(false)
     if (result && !result.saved) {
-      setWarnings(result.warnings)
+      setProblems(result.problems)
+      setCanSaveAnyway(result.canSaveAnyway)
       return
     }
     if (result) {
       setEditing(false)
-      setWarnings([])
+      setProblems([])
     }
   }
 
-  // Warnings belong to the text that was checked. Any change makes them stale, so "Save anyway" must not reuse them.
+  // Problems belong to the text that was checked. Any change makes them stale, so "Save anyway" must not reuse them.
   const changeEdits = (edits: Edit[]) => {
     setDraftEdits(edits)
-    setWarnings([])
+    setProblems([])
   }
   const changeReply = (reply: string) => {
     setDraftReply(reply)
-    setWarnings([])
+    setProblems([])
   }
 
   // A whole-field change the teacher opened but did not change is not a change.
@@ -98,7 +100,7 @@ export function ReportCard({ report, current, focused, onSubmit }: ReportCardPro
 
   const cancelEdit = () => {
     setEditing(false)
-    setWarnings([])
+    setProblems([])
     setDraftEdits(report.edits)
     setDraftReply(report.reply)
   }
@@ -171,13 +173,17 @@ export function ReportCard({ report, current, focused, onSubmit }: ReportCardPro
         </div>
       )}
 
-      {warnings.length > 0 && (
+      {problems.length > 0 && (
         <div className="flex flex-col gap-2 rounded-xl bg-warn-bg p-3 text-sm">
-          <p className="flex items-center gap-1.5 font-medium text-warn"><TriangleAlert className="size-4" /> Please check before saving</p>
-          <ul className="list-disc pl-5">{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
-          <Button className="h-9 w-fit rounded-lg px-3" variant="outline" disabled={busy} onClick={() => void saveEdit(true)}>
-            Save anyway
-          </Button>
+          <p className="flex items-center gap-1.5 font-medium text-warn">
+            <TriangleAlert className="size-4" /> {canSaveAnyway ? "Please check before saving" : "This edit cannot be saved yet"}
+          </p>
+          <ul className="list-disc pl-5">{problems.map((problem) => <li key={problem}>{problem}</li>)}</ul>
+          {canSaveAnyway && (
+            <Button className="h-9 w-fit rounded-lg px-3" variant="outline" disabled={busy} onClick={() => void saveEdit(true)}>
+              Save anyway
+            </Button>
+          )}
         </div>
       )}
 

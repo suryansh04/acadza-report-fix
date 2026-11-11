@@ -19,7 +19,7 @@ from parse import Question, load_questions_with_reports
 
 import audit_log
 import database
-from edit_checks import find_format_warnings
+from edit_checks import check_teacher_edit
 
 CASES_PATH = PROJECT_DIR / "cases.json"
 FRONTEND_DIST = PROJECT_DIR / "frontend" / "dist"
@@ -68,13 +68,11 @@ REPORT_IDS_BY_QUESTION = {case["questionId"]: [report["report_id"] for report in
 
 
 def edits_in_effect(report_id: str, decisions: dict[str, dict]) -> list[Edit]:
-    """A teacher edit replaces the engine fix. An approved or open auto-fix stays live."""
     report, decision = REPORTS[report_id], decisions.get(report_id)
-    if decision is None:
-        return [Edit(**edit) for edit in report["edits"]] if report["route"] == "auto_apply" else []
-    if decision["action"] == "edit":
+    if decision and decision["action"] == "edit":
         return [Edit(**edit) for edit in decision["edits"]]
-    return [] if decision["action"] == "reject" else [Edit(**edit) for edit in report["edits"]]
+    engine_fix_is_live = report["route"] == "auto_apply" if decision is None else decision["action"] == "approve"
+    return [Edit(**edit) for edit in report["edits"]] if engine_fix_is_live else []
 
 
 def require_reviewer(reviewer: str) -> str:
@@ -119,11 +117,13 @@ def save_action(request: ActionRequest) -> dict:
         # One decision per report: a double key press or a second browser tab must not save twice.
         if request.report_id in decisions:
             raise HTTPException(409, f"{request.report_id} already has a decision. Undo it first to change it.")
-        if request.action == "edit" and not request.save_anyway:
-            other_edits = [edit for report_id in REPORT_IDS_BY_QUESTION[question_id] if report_id != request.report_id
-                           for edit in edits_in_effect(report_id, decisions)]
-            warnings = find_format_warnings(QUESTIONS[question_id], request.edits, other_edits)
-            if warnings:
+        if request.action == "edit":
+            other_edits = {report_id: edits_in_effect(report_id, decisions)
+                           for report_id in REPORT_IDS_BY_QUESTION[question_id] if report_id != request.report_id}
+            errors, warnings = check_teacher_edit(QUESTIONS[question_id], request.edits, other_edits)
+            if errors:
+                raise HTTPException(422, {"errors": errors})
+            if warnings and not request.save_anyway:
                 raise HTTPException(409, {"warnings": warnings})
         return [audit_log.NewAuditEntry(request.report_id, question_id, request.action, [edit.model_dump() for edit in request.edits],
                                  request.reply, request.note, reviewer)]
