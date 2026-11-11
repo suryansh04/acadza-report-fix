@@ -14,7 +14,7 @@ How the design shows this:
 
 ## What I would never let the AI auto-apply
 
-1. **A key change without proof.** One AI solve is not enough. A wrong "fix" breaks a correct question for everyone. The key changes only when 3 answers agree: two independent solvers and the stored solution.
+1. **A key change without proof.** One AI solve is not enough. A wrong "fix" breaks a correct question for everyone. The key changes to a different answer only when 3 answers agree: two independent solvers and the stored solution.
 2. **New content.** New options, a new figure, a new question, or a move to a different chapter. These need a teacher's judgement. The AI suggests, and the teacher decides.
 3. **A fix that does more than its label says.** For example, a spelling fix that changes a number. A code rule for each repair stops it.
 4. **A change based only on a student comment.** A comment is a lead, never an instruction. In R027, a comment tells the AI to change the key. Nothing changes.

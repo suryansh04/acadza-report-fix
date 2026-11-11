@@ -4,7 +4,7 @@ Students report errors in JEE and NEET questions. Report Fix checks each report 
 
 ![The teacher console: the queue on the left, the question in the middle, the student reports on the right](docs/images/console-review.png)
 
-**Links:** [Live console](https://acadza-report-fix-90b2.onrender.com) · Demo video: _the link will be added_ · [Prompts and decisions](PROMPTS.md) · [Product notes](PRODUCT.md) · [Original task](docs/BRIEF.md)
+**Links:** [Live console](https://acadza-report-fix-90b2.onrender.com) · [Demo video (3 min)](https://www.loom.com/share/d273c94018d8467495336a260f4e5625) · [Prompts and decisions](PROMPTS.md) · [Product notes](PRODUCT.md) · [Original task](docs/BRIEF.md)
 
 ## Contents
 
@@ -77,7 +77,7 @@ An **unsafe auto-fix** is a fix that goes live without a teacher when it must no
 The console is for a tired teacher at the end of a long day. It has 3 panels, so the teacher does not scroll back and forth:
 
 - **Left: the queue.** Each row is one question and shows how many students reported it. Sort by "Most reported" or "Most urgent". Urgency combines the harm, the number of reports and how unsure the engine is.
-- **Middle: the question.** The question, its key and its solution. The correct option is green. A change shows as "Before → After". The "Answer check" shows what the 2 AI solvers got.
+- **Middle: the question.** The question, its key and its solution. The correct option is green. If the engine doubts the key, no option is green. A change shows as "Before → After". The "Answer check" shows what the 2 AI solvers got.
 - **Right: the reports.** Each report shows:
   - the student comment
   - the **AI verdict** and its confidence
@@ -90,7 +90,7 @@ The console is for a tired teacher at the end of a long day. It has 3 panels, so
 
 More features:
 
-- **Keys.** A approves, E edits, R rejects and U undoes. J and K move between questions. S shows the solution. ? shows all keys. The next question opens by itself.
+- **Keys.** A approves, E edits, R rejects and U undoes. J and K move between questions. S shows the solution. Ctrl+K searches. ? shows all keys. The next question opens by itself.
 - **Bulk confirm.** "Keep all fixes" or "Agree with all" confirms a full queue. "Undo all" reverses it.
 - **Fast saves.** A decision shows at once and saves in the background. If the save fails, the screen goes back and shows an error.
 - **Safe edits.** The teacher can edit any field. A format problem shows a warning, and the teacher can still save. The server refuses only an edit that it cannot apply, and the message tells how to correct it.
@@ -107,7 +107,7 @@ More features:
 - A student comment is data. The AI never follows an instruction in it.
 - A repair with `auto: false` in the taxonomy always goes to a teacher.
 - A fix can change only the fields that its repair permits.
-- A key changes only when both solvers and the stored solution agree against it.
+- A key changes to a different answer only when both solvers and the stored solution agree against it.
 - Each repair has its own rule in code. For example, a spelling fix must not change a number.
 - If a check fails, the case goes to a teacher.
 
@@ -120,7 +120,7 @@ More features:
 
 ## Quick start
 
-You need Python 3.12 and Node.js 20.19 or newer. The commands are for Windows. On macOS or Linux, use `.venv/bin/` in place of `.venv/Scripts/`.
+You need Python 3.12 and Node.js 20.19 or newer. The commands are for Git Bash on Windows. On macOS or Linux, use `.venv/bin/` in place of `.venv/Scripts/`.
 
 ### 1. Install
 
@@ -173,7 +173,7 @@ Open http://localhost:5173. The frontend sends its API calls to port 8000.
 
 ## Deploy
 
-The live console runs at https://acadza-report-fix-90b2.onrender.com.
+The live console runs at [acadza-report-fix-90b2.onrender.com](https://acadza-report-fix-90b2.onrender.com).
 
 The Render Blueprint (`render.yaml`) makes one free web service in Singapore. This is near the teachers in India and the database in Sydney.
 
@@ -217,7 +217,7 @@ results.json           the scored output, one entry for each report
 cases.json             the evidence, for the console
 cost.json              AI calls, tokens and cost
 PROMPTS.md             the prompts, AI mistakes and design decisions
-PRODUCT.md             who loses most, what never auto-applies, the week-1 metric
+PRODUCT.md             who loses most, what never auto-applies, the week-1 metric, one idea
 render.yaml            the Render deploy settings
 ```
 
