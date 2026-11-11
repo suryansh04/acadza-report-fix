@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ArrowRight, Check, CircleCheck, FileText, Inbox, LoaderCircle, MessagesSquare, PanelLeftClose, PanelLeftOpen, SearchCheck, TriangleAlert, Users } from "lucide-react"
 
 import type { Case, Edit } from "@/api"
@@ -115,13 +115,36 @@ function QueueHeader({ cases, queue, count, sort, onSortChange, onBulk, onCollap
   )
 }
 
+// Scrolls only the queue list. A smooth scrollIntoView also scrolls the boxes around the list, and Chromium then
+// cancels the scroll up on K.
+function scrollRowIntoQueueView(row: HTMLElement) {
+  const list = row.parentElement
+  if (!list) return
+  const rowBox = row.getBoundingClientRect()
+  const listBox = list.getBoundingClientRect()
+  const gap = Number.parseFloat(getComputedStyle(list).paddingTop)
+  const offset = rowBox.top < listBox.top ? rowBox.top - listBox.top - gap
+    : rowBox.bottom > listBox.bottom ? rowBox.bottom - listBox.bottom + gap : 0
+  if (offset === 0) return
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  list.scrollBy({ top: offset, behavior: reduceMotion ? "auto" : "smooth" })
+}
+
 function QueueRow({ item, queue, selected, onClick }: { item: Case; queue: QueueName; selected: boolean; onClick: () => void }) {
   const repairs = [...new Set(item.reports.map((report) => report.repair).filter(Boolean))] as string[]
   const pending = item.reports.filter((report) => reportState(report) === "needs_you").length
   const finished = caseIsFinished(item, queue)
   const lowConfidence = !finished && lowestConfidence(item) < LOW_CONFIDENCE
+  const rowRef = useRef<HTMLButtonElement>(null)
+
+  // J, K and auto-advance can select a row outside the visible part of the queue.
+  useEffect(() => {
+    if (selected && rowRef.current) scrollRowIntoQueueView(rowRef.current)
+  }, [selected])
+
   return (
     <button
+      ref={rowRef}
       type="button"
       onClick={onClick}
       aria-current={selected ? "true" : undefined}
