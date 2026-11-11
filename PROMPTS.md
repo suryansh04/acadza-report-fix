@@ -225,6 +225,14 @@ List any real defect in this question that no report covers, with the repair and
     **Why:** A reviewer has little time for each doc.
     **Result:** Shorter sentences and fewer words in README.md, PRODUCT.md and this file. The facts did not change.
 
+19. **Prompt:** "Is Render the best option, or can we use Modal or a Google Cloud backend?"
+    **Why:** The free Render plan sleeps, and the first visit then takes about 1 minute.
+    **Result:** We kept Render and added an UptimeRobot monitor. See part 4, decision 13.
+
+20. **Prompt:** "Update the README. Check each sentence and make sure that it is up to date. Add new images and the links."
+    **Why:** The README must describe the live app, not an older version.
+    **Result:** The AI checked each fact against the code and the data. It took new screenshots from the live console and added the live link and the deploy steps. It also found and fixed a typo on the dashboard ("23 fixs applied").
+
 ---
 
 ## 3. Times the AI was wrong
@@ -416,3 +424,10 @@ List any real defect in this question that no report covers, with the repair and
 - **Decision:** The queue opens sorted by the number of students who reported each question. "Most urgent" is one click away.
 - **Why:** A teacher understands a count at once, and many reports mean many affected students.
 - **Dropped:** Urgency as the only order.
+
+### 13. Render with an uptime monitor
+
+- **Problem:** The console must stay online and fast for 7 days, at no cost.
+- **Decision:** One free Render web service in Singapore. An UptimeRobot monitor opens `/api/health` every 5 minutes, so the service does not sleep. The health check also accepts `HEAD`, because monitors often send it.
+- **Why:** Render needs no code change and no credit card. A check every 5 minutes is shorter than the 15-minute sleep time.
+- **Dropped:** Google Cloud Run (it needs a credit card, a Dockerfile and more setup) and Modal (it needs a new package and new code around the app).
