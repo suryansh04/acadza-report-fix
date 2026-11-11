@@ -2,6 +2,8 @@ services:
   - type: web
     name: acadza-report-fix
     runtime: python
+    # Close to the Supabase database (Sydney) and to the teachers (India). Each database round trip is short.
+    region: singapore
     plan: free
     buildCommand: pip install -r backend/requirements.txt
     startCommand: uvicorn main:app --app-dir backend --host 0.0.0.0 --port $PORT
