@@ -32,8 +32,7 @@ def find_new_broken_math(before: Question, after: Question) -> list[str]:
 
 
 def find_ignored_key_text(typed_key: str, question_type: str) -> list[str]:
-    """The engine reads keys leniently: "(A) and (C)" means A and C. For a key that a teacher types, flag any text the engine
-    would drop, so "A, B, Z" is never saved as "A, B" without a word. All other key checks are the engine's (run_all_checks)."""
+    """Flag text that the engine drops, so "A, B, Z" is not saved as "A, B"."""
     if question_type == "integerQuestion":
         number = typed_key.strip().replace(MATH_MINUS_SIGN, "-")
         return [] if re.fullmatch(r"-?\d+(\.\d+)?", number) else [f"An integer key must be only a number, not '{typed_key}'."]
@@ -42,8 +41,6 @@ def find_ignored_key_text(typed_key: str, question_type: str) -> list[str]:
 
 
 def find_edit_conflicts(question: Question, edits: list[Edit]) -> list[str]:
-    """Edits that cannot be applied together: an unknown type, two different keys or types,
-    or text that is missing, found twice, or overlapping another edit in the same field."""
     problems = [f"The question type must be one of {', '.join(QUESTION_TYPES)}, not '{edit.replace}'."
                 for edit in edits if edit.field == "questionType" and edit.replace not in QUESTION_TYPES]
     for field_name, label in (("answer", "answer keys"), ("questionType", "question types")):
@@ -72,9 +69,7 @@ def unique_edits(edits: list[Edit]) -> list[Edit]:
 
 
 def find_format_warnings(question: Question, edits: list[Edit], other_edits: list[Edit]) -> list[str]:
-    """Format checks for a teacher's edit. They warn and never block: the teacher has the final word.
-    The edit is checked on top of the changes other reports on this question already made, so two edits cannot clash,
-    and only problems that this edit adds are reported."""
+    """Check the edit on top of the other live edits. Report only new problems."""
     baseline_edits = unique_edits(other_edits)
     # If the other changes do not apply cleanly themselves, check the edit against the stored question alone.
     if find_edit_conflicts(question, baseline_edits):

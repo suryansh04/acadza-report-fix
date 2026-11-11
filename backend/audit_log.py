@@ -55,7 +55,6 @@ def row_to_entry(row: dict | sqlite3.Row) -> dict:
 
 
 def decisions_from_rows(rows: list) -> dict[str, dict]:
-    """The decision that stands for each report: its latest audit entry, unless that entry is an undo."""
     entries = [row_to_entry(row) for row in rows]
     return {entry["report_id"]: entry for entry in entries if entry["action"] != "undo"}
 
@@ -69,7 +68,6 @@ def standing_decisions() -> dict[str, dict]:
 
 
 def build_insert(entries: list[NewAuditEntry]) -> tuple[str, list]:
-    """One INSERT statement for all entries, so a bulk action costs one round trip, not one for each row."""
     created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     row_marks = "(" + ", ".join([placeholder()] * len(INSERT_COLUMNS)) + ")"
     values = [value for entry in entries for value in (entry.report_id, entry.question_id, entry.action,
@@ -86,8 +84,7 @@ def sorted_entries(rows: list) -> list[dict]:
 
 
 def write_postgres(connection: psycopg.Connection, plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
-    # Supabase is far away, so each round trip costs time. A client-side cursor sends several statements as one string:
-    # 1. BEGIN, the write lock and the read of the standing decisions.  2. The INSERT and the COMMIT.
+    # Supabase is far away. Send all statements in 2 round trips.
     cursor = psycopg.ClientCursor(connection)
     try:
         cursor.execute(f"BEGIN; SELECT pg_advisory_xact_lock({AUDIT_WRITE_LOCK}); {LATEST_ENTRIES}")
@@ -120,10 +117,7 @@ def write_sqlite(connection: sqlite3.Connection, plan: Callable[[dict[str, dict]
 
 
 def write_entries(plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
-    """Saves the entries that plan returns, in one locked transaction: all of them or none. One audit write runs at
-    a time, so a check on the standing decisions and the insert that follows can never interleave with another request.
-    plan gets the decisions read inside the transaction, so its checks are still true at insert time. If plan raises,
-    nothing is saved."""
+    """One locked transaction. If plan raises, nothing is saved."""
     return run(lambda connection: write_postgres(connection, plan) if isinstance(connection, psycopg.Connection)
                else write_sqlite(connection, plan))
 

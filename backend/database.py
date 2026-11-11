@@ -21,8 +21,7 @@ def database_url() -> str | None:
 
 
 def open_pool() -> None:
-    """Open the Supabase connection pool once, at server start. A new connection to Supabase takes seconds,
-    so each request borrows an open one instead. Without DATABASE_URL the console uses a local SQLite file."""
+    """A new Supabase connection takes seconds, so requests borrow open ones."""
     global _pool
     if database_url() and _pool is None:
         # No server-side prepared statements: they break behind a transaction-mode pooler such as Supabase's port 6543.
@@ -56,8 +55,7 @@ def _connection() -> Iterator[Connection]:
 
 
 def run(work: Callable[[Connection], Result]) -> Result:
-    """Run work on a database connection. Supabase can drop a connection that sat idle in the pool.
-    That fails before anything is saved, so one retry on a fresh connection is safe."""
+    """Supabase can drop an idle connection. That fails before any write, so one retry is safe."""
     try:
         with _connection() as connection:
             return work(connection)

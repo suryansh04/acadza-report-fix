@@ -68,8 +68,7 @@ REPORT_IDS_BY_QUESTION = {case["questionId"]: [report["report_id"] for report in
 
 
 def edits_in_effect(report_id: str, decisions: dict[str, dict]) -> list[Edit]:
-    """The edits live for one report, as the console shows them: a teacher edit replaces the engine fix,
-    a reject removes it, and an auto-fix is live until a teacher rejects it."""
+    """A teacher edit replaces the engine fix. An approved or open auto-fix stays live."""
     report, decision = REPORTS[report_id], decisions.get(report_id)
     if decision is None:
         return [Edit(**edit) for edit in report["edits"]] if report["route"] == "auto_apply" else []
@@ -134,8 +133,6 @@ def save_action(request: ActionRequest) -> dict:
 
 @app.post("/api/actions/bulk")
 def approve_many(request: BulkApproveRequest) -> list[dict]:
-    """Approve many reports at once, for example "keep all auto-fixes". Reports that already have a decision are skipped.
-    Edits are never bulk: each needs its own format check."""
     require_known_reports(request.report_ids)
     reviewer = require_reviewer(request.reviewer)
     return audit_log.write_entries(lambda decisions: [
@@ -145,8 +142,7 @@ def approve_many(request: BulkApproveRequest) -> list[dict]:
 
 @app.post("/api/actions/undo")
 def undo_decisions(request: UndoRequest) -> list[dict]:
-    """Undo decisions by their audit entry id. A decision that was already undone or replaced is left alone,
-    so an old "Undo" button can never cancel a newer decision."""
+    """By entry id, so an old Undo button never cancels a newer decision."""
     reviewer = require_reviewer(request.reviewer)
 
     def plan(decisions: dict[str, dict]) -> list[audit_log.NewAuditEntry]:
