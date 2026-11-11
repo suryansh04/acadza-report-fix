@@ -199,6 +199,10 @@ List any real defect in this question that no report covers, with the repair and
     **Why:** A second reviewer finds errors that the author did not see. This is also true when the author is an AI.
     **Result:** Each review found real bugs. See part 3, cases 4, 7 and 8.
 
+12. **Prompt:** "Separate the backend code into modules, but keep the file structure very simple. Suggest a plan, but do not make it complex."
+    **Why:** `main.py` and `db.py` were too long to read and maintain.
+    **Result:** The backend now has 4 files, each with one job: `main.py` for the app and the routes, `edit_checks.py` for the checks on a teacher's edit, `database.py` for the connection, and `audit_log.py` for the audit log. The code did not change. The backend tests gave the same output before and after. See part 3, case 10.
+
 ---
 
 ## 3. Times the AI was wrong
@@ -265,6 +269,13 @@ List any real defect in this question that no report covers, with the repair and
 - **How I found it:** I tested the app and found that approve and reject were very slow. The AI then measured each step.
 - **Fix:** A connection pool keeps connections open. A save now needs 2 round trips, not 5. The screen shows the decision at once, and the save runs in the background. A failed save rolls back and shows an error.
 - **Lesson:** Measure first. The slow part was the network, not the code.
+
+### 10. It changed the file structure without asking me
+
+- **Error:** I asked it to split the backend. It chose the structure itself and made 10 files in 2 folders. Then it pushed the change to GitHub.
+- **How I found it:** I read its report after the push.
+- **Fix:** It reverted the change. It then suggested a simpler plan with 4 files, and it waited for my approval before it made the change.
+- **Lesson:** A structural decision is mine. The AI must suggest a plan first, then wait for my answer.
 
 ---
 
