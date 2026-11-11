@@ -1,28 +1,20 @@
+"""The audit log: one row for each teacher action. The decision that stands for a report is its latest row."""
 import json
-import os
 import sqlite3
-from collections.abc import Callable, Iterator
-from contextlib import closing, contextmanager
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import TypeVar
 
 import psycopg
-from psycopg.rows import dict_row
-from psycopg_pool import ConnectionPool
 
-LOCAL_DATABASE = Path(__file__).resolve().parent / "audit.sqlite3"
+from .connection import Connection, database_url, placeholder, run
+
 COLUMNS = ("id", "report_id", "question_id", "action", "edits", "reply", "note", "reviewer", "created_at")
 INSERT_COLUMNS = COLUMNS[1:]
 SELECT_COLUMNS = f"SELECT {', '.join(COLUMNS)} FROM audit_log"
 LATEST_ENTRIES = f"{SELECT_COLUMNS} WHERE id IN (SELECT MAX(id) FROM audit_log GROUP BY report_id)"
 # Any fixed number works: it only names the lock that lets one audit write run at a time.
 AUDIT_WRITE_LOCK = 4_270_011
-
-Connection = psycopg.Connection | sqlite3.Connection
-Result = TypeVar("Result")
-_pool: ConnectionPool | None = None
 
 
 @dataclass
@@ -36,58 +28,7 @@ class NewAuditEntry:
     reviewer: str
 
 
-def database_url() -> str | None:
-    return os.environ.get("DATABASE_URL") or None
-
-
-def open_pool() -> None:
-    """Open the Supabase connection pool once, at server start. A new connection to Supabase takes seconds,
-    so each request borrows an open one instead. Without DATABASE_URL the console uses a local SQLite file."""
-    global _pool
-    if database_url() and _pool is None:
-        # No server-side prepared statements: they break behind a transaction-mode pooler such as Supabase's port 6543.
-        _pool = ConnectionPool(database_url(), min_size=1, max_size=5, open=True, name="audit",
-                               kwargs={"row_factory": dict_row, "autocommit": True, "prepare_threshold": None})
-        _pool.wait()
-
-
-def close_pool() -> None:
-    global _pool
-    if _pool is not None:
-        _pool.close()
-        _pool = None
-
-
-@contextmanager
-def _connection() -> Iterator[Connection]:
-    if _pool is not None:
-        with _pool.connection() as connection:
-            yield connection
-        return
-    if database_url():
-        # Scripts that never opened the pool still get a working connection.
-        with closing(psycopg.connect(database_url(), row_factory=dict_row, autocommit=True, prepare_threshold=None)) as connection:
-            yield connection
-        return
-    connection = sqlite3.connect(LOCAL_DATABASE, isolation_level=None, timeout=10)
-    connection.row_factory = sqlite3.Row
-    with closing(connection):
-        yield connection
-
-
-def run(work: Callable[[Connection], Result]) -> Result:
-    """Run work on a database connection. Supabase can drop a connection that sat idle in the pool.
-    That fails before anything is saved, so one retry on a fresh connection is safe."""
-    try:
-        with _connection() as connection:
-            return work(connection)
-    except psycopg.OperationalError:
-        with _connection() as connection:
-            return work(connection)
-
-
-def placeholder() -> str:
-    return "%s" if database_url() else "?"
+Plan = Callable[[dict[str, dict]], list[NewAuditEntry]]
 
 
 def create_audit_table() -> None:
@@ -131,6 +72,10 @@ def standing_decisions() -> dict[str, dict]:
     return run(read_standing_decisions)
 
 
+def list_audit_entries() -> list[dict]:
+    return run(lambda connection: [row_to_entry(row) for row in connection.execute(f"{SELECT_COLUMNS} ORDER BY id DESC").fetchall()])
+
+
 def build_insert(entries: list[NewAuditEntry]) -> tuple[str, list]:
     """One INSERT statement for all entries, so a bulk action costs one round trip, not one for each row."""
     created_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -148,7 +93,7 @@ def sorted_entries(rows: list) -> list[dict]:
     return sorted((row_to_entry(row) for row in rows), key=lambda entry: entry["id"])
 
 
-def write_postgres(connection: psycopg.Connection, plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
+def write_postgres(connection: psycopg.Connection, plan: Plan) -> list[dict]:
     # Supabase is far away, so each round trip costs time. A client-side cursor sends several statements as one string:
     # 1. BEGIN, the write lock and the read of the standing decisions.  2. The INSERT and the COMMIT.
     cursor = psycopg.ClientCursor(connection)
@@ -169,7 +114,7 @@ def write_postgres(connection: psycopg.Connection, plan: Callable[[dict[str, dic
         raise
 
 
-def write_sqlite(connection: sqlite3.Connection, plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
+def write_sqlite(connection: sqlite3.Connection, plan: Plan) -> list[dict]:
     # BEGIN IMMEDIATE takes the write lock at once, so no other request can write between the check and the insert.
     connection.execute("BEGIN IMMEDIATE")
     try:
@@ -182,14 +127,10 @@ def write_sqlite(connection: sqlite3.Connection, plan: Callable[[dict[str, dict]
     return sorted_entries(rows)
 
 
-def write_entries(plan: Callable[[dict[str, dict]], list[NewAuditEntry]]) -> list[dict]:
+def write_entries(plan: Plan) -> list[dict]:
     """Saves the entries that plan returns, in one locked transaction: all of them or none. One audit write runs at
     a time, so a check on the standing decisions and the insert that follows can never interleave with another request.
     plan gets the decisions read inside the transaction, so its checks are still true at insert time. If plan raises,
     nothing is saved."""
     return run(lambda connection: write_postgres(connection, plan) if isinstance(connection, psycopg.Connection)
                else write_sqlite(connection, plan))
-
-
-def list_audit_entries() -> list[dict]:
-    return run(lambda connection: [row_to_entry(row) for row in connection.execute(f"{SELECT_COLUMNS} ORDER BY id DESC").fetchall()])

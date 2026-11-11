@@ -199,6 +199,10 @@ List any real defect in this question that no report covers, with the repair and
     **Why:** A second reviewer finds errors that the author did not see. This is also true when the author is an AI.
     **Result:** Each review found real bugs. See part 3, cases 4, 7 and 8.
 
+12. **Prompt:** "Separate the backend code into modules. The two files are too big to understand or maintain."
+    **Why:** One file had the routes, the request checks, the format warnings and the case data together.
+    **Result:** The backend now has small files with one job each: routes, request checks, format warnings, case data and the database. The behavior did not change. The same backend tests gave the same output before and after the change.
+
 ---
 
 ## 3. Times the AI was wrong
