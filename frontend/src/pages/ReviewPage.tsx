@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { ArrowRight, Check, CircleCheck, FileText, Inbox, LoaderCircle, MessagesSquare, SearchCheck } from "lucide-react"
 
 import type { Case, Edit } from "@/api"
-import type { ConfirmAll } from "@/App"
 import { AllCaughtUp } from "@/components/AllCaughtUp"
 import { ChangePreview } from "@/components/ChangePreview"
 import { Panel, Pill } from "@/components/Panel"
@@ -10,6 +9,7 @@ import { ReportCard, type SubmitAction } from "@/components/ReportCard"
 import { VotePanel } from "@/components/VotePanel"
 import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
+import type { ConfirmAll } from "@/hooks/use-decisions"
 import { useKeydown } from "@/hooks/use-keydown"
 import {
   REPAIR_LABELS,
