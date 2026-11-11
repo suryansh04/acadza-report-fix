@@ -8,9 +8,20 @@ export function stripHtml(html: string): string {
   return text.replace(/\s+/g, " ").trim()
 }
 
+// Some stored questions have MathML <mspace> tags outside any <math>. DOMPurify drops those together with their
+// content, which hid options B to D of one question. Unwrap them first, so their text stays.
+function unwrapStrayMathSpaces(html: string): string {
+  if (!html.includes("<mspace")) return html
+  const document = new DOMParser().parseFromString(html, "text/html")
+  for (const element of document.body.querySelectorAll("mspace")) {
+    if (!element.closest("math")) element.replaceWith(...element.childNodes)
+  }
+  return document.body.innerHTML
+}
+
 /** Question HTML comes from stored data, and fix HTML from the AI or a teacher. Clean both before they reach the page. */
 export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true, mathMl: true } })
+  return DOMPurify.sanitize(unwrapStrayMathSpaces(html), { USE_PROFILES: { html: true, mathMl: true } })
 }
 
 function normalizeLineBreaks(text: string): string {

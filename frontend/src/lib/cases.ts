@@ -104,8 +104,33 @@ export function queueForCase(item: Case): QueueName {
   return item.reports.some((report) => report.route === "auto_apply") ? "auto-fixed" : "no-change"
 }
 
-export function casesInQueue(cases: Case[], queue: QueueName): Case[] {
-  return cases.filter((item) => caseIsInQueue(item, queue)).sort((a, b) => b.urgency - a.urgency)
+export type QueueSort = "reports" | "urgency"
+
+/** "reports": the question most students reported comes first. "urgency": harm times reports. Each breaks the other's ties. */
+export function casesInQueue(cases: Case[], queue: QueueName, sort: QueueSort = "urgency"): Case[] {
+  const byReports = (a: Case, b: Case) => b.reports.length - a.reports.length
+  const byUrgency = (a: Case, b: Case) => b.urgency - a.urgency
+  const [first, second] = sort === "reports" ? [byReports, byUrgency] : [byUrgency, byReports]
+  return cases.filter((item) => caseIsInQueue(item, queue)).sort((a, b) => first(a, b) || second(a, b))
+}
+
+/** The lowest confidence among the reports of a question. A low value means the teacher should read it carefully. */
+export function lowestConfidence(item: Case): number {
+  return Math.min(...item.reports.map((report) => report.confidence))
+}
+
+export const LOW_CONFIDENCE = 0.7
+
+export function studentsReported(count: number): string {
+  return `${count} student${count === 1 ? "" : "s"} reported`
+}
+
+/** The option letters of the key that is live now: the teacher's or the engine's new key, otherwise the stored one. */
+export function correctOptionLetters(item: Case, edits: Edit[]): string[] {
+  if (item.questionType === "integerQuestion") return []
+  const keyEdit = edits.find((edit) => edit.field === "answer")
+  const key = keyEdit ? keyEdit.replace : formatAnswer(item.before.answer)
+  return key.toUpperCase().match(/\b[A-D]\b/g) ?? []
 }
 
 export function formatAnswer(answer: string | string[] | null | undefined): string {

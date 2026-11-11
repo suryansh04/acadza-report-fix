@@ -92,7 +92,7 @@ type ProfileMenuProps = {
 }
 
 function ProfileMenu({ reviewer, database, open, onOpenChange, onReviewerChange }: ProfileMenuProps) {
-  const databaseText = database === null ? "Server offline" : ({ "": "Connecting…", supabase: "Saved to Supabase" }[database] ?? "Saved locally")
+  const databaseText = database === null ? "Server offline" : ({ "": "Connecting…", supabase: "Saved" }[database] ?? "Saved locally")
   const databaseTone = database === null ? "text-bad" : "text-live"
 
   useKeydown((event) => {
@@ -159,8 +159,8 @@ export function Topbar({ page, cases, openReports, profileOpen, onProfileOpenCha
           variant="outline"
           className="size-11 rounded-lg text-muted-foreground"
           aria-pressed={soundOn}
-          aria-label={soundOn ? "Turn off the success sound" : "Turn on the success sound"}
-          title={soundOn ? "Sound on: a chime plays when you save a review" : "Sound off"}
+          aria-label={soundOn ? "Turn off the sounds" : "Turn on the sounds"}
+          title={soundOn ? "Sound on: a chime when you save a review, and a soft tick on J and K" : "Sound off"}
           onClick={() => onSoundChange(!soundOn)}
         >
           {soundOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}

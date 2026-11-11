@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react"
 
+import type { QueueSort } from "@/lib/cases"
+
 export type Page = "home" | "needs-you" | "auto-fixed" | "no-change" | "unreported" | "audit"
 
 const PAGES: Page[] = ["home", "needs-you", "auto-fixed", "no-change", "unreported", "audit"]
 const REVIEWER_KEY = "report-fix-reviewer"
 const SOUND_KEY = "report-fix-sound"
+const QUEUE_SORT_KEY = "report-fix-queue-sort"
 
 export type Location = { page: Page; questionId: string | null }
 
@@ -69,6 +72,11 @@ export function useSoundOn(): [boolean, (on: boolean) => void] {
   const [stored, setStored] = useStoredText(SOUND_KEY, "on")
   const setSoundOn = useCallback((on: boolean) => setStored(on ? "on" : "off"), [setStored])
   return [stored !== "off", setSoundOn]
+}
+
+export function useQueueSort(): [QueueSort, (sort: QueueSort) => void] {
+  const [stored, setStored] = useStoredText(QUEUE_SORT_KEY, "reports")
+  return [stored === "urgency" ? "urgency" : "reports", setStored]
 }
 
 /** True when a single-letter shortcut must not fire: the teacher is typing, a dialog is open, or a modifier is held. */

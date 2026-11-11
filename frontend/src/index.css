@@ -166,6 +166,10 @@
   html {
     @apply font-sans;
     }
+  /* Tailwind gives buttons the default arrow. Everything a teacher can click shows the pointer hand. */
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), a[href], summary, select, label[for] {
+    cursor: pointer;
+    }
 }
 /* Stored question HTML carries inline black text and h3 headings. Make it read as normal body text in both themes. */
 .question-html { line-height: 1.75; font-size: 0.975rem; overflow-wrap: anywhere; }
@@ -174,4 +178,5 @@
 .question-html p { margin: 0 0 0.5rem; }
 .question-html math { font-size: 1.08em !important; }
 .question-html .diff-del { background: color-mix(in oklab, var(--bad) 18%, transparent) !important; text-decoration: line-through; border-radius: 3px; padding: 0 2px; }
+::highlight(correct-option) { background-color: color-mix(in oklab, var(--good) 24%, transparent); }
 .question-html .diff-ins { background: color-mix(in oklab, var(--good) 20%, transparent) !important; text-decoration: none; border-radius: 3px; padding: 0 2px; }

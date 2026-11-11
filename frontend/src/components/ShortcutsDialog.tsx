@@ -10,6 +10,7 @@ const SHORTCUTS: { keys: string[]; action: string }[] = [
   { keys: ["E"], action: "Edit the fix or the reply" },
   { keys: ["R"], action: "Reject, undo the fix, or disagree" },
   { keys: ["U"], action: "Undo your last decision" },
+  { keys: ["S"], action: "Show or hide the stored solution" },
   { keys: ["Ctrl", "Enter"], action: "Save an edit" },
   { keys: ["Esc"], action: "Cancel an edit or close a menu" },
   { keys: ["Ctrl", "K"], action: "Search questions" },

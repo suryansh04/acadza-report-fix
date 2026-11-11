@@ -78,6 +78,15 @@ function Console({ soundOn, onSoundChange }: { soundOn: boolean; onSoundChange: 
   })
 
   const { page, questionId } = location
+  // The menu is open on the dashboard and folds to icons on every other page, so the work gets the space.
+  // A teacher who opens or closes it keeps that choice until the next page change.
+  const [sidebarChoice, setSidebarChoice] = useState<boolean | null>(null)
+  const [sidebarPage, setSidebarPage] = useState(page)
+  if (sidebarPage !== page) {
+    setSidebarPage(page)
+    setSidebarChoice(null)
+  }
+  const sidebarOpen = sidebarChoice ?? page === "home"
 
   useKeydown((event) => {
     if (event.key.toLowerCase() !== "u" || event.repeat || shouldIgnoreShortcut(event)) return
@@ -107,7 +116,7 @@ function Console({ soundOn, onSoundChange }: { soundOn: boolean; onSoundChange: 
   }
 
   return (
-    <SidebarProvider defaultOpen className="h-svh overflow-hidden" style={SIDEBAR_SIZE}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarChoice} className="h-svh overflow-hidden" style={SIDEBAR_SIZE}>
       <AppSidebar page={page} counts={counts} reviewer={reviewer} onReviewerChange={setReviewer} onNavigate={navigate} onShowShortcuts={() => setShortcutsOpen(true)} />
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar page={page} cases={cases ?? []} openReports={openReports} reviewer={reviewer} database={database} profileOpen={profileOpen}
