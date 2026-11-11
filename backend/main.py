@@ -156,7 +156,8 @@ def undo_decisions(request: UndoRequest) -> list[dict]:
     return audit_log.write_entries(plan)
 
 
-@app.get("/api/health")
+# Uptime monitors often send HEAD, and a 405 would count as "down".
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 def health() -> dict:
     return {"status": "ok", "database": "supabase" if database.database_url() else "local sqlite"}
 
