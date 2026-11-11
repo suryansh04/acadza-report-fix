@@ -314,6 +314,25 @@ Format for each prompt:
 - **Check:** 10 API tests and a browser test passed. For example, pressing A, A and R fast saved one decision, and an injected `<img onerror>` did not run.
 - **Lesson:** Run a separate code review on UI code too. The bugs were in the details between key presses and server answers, not in the visible screens.
 
+### 8. Its "one decision per report" rule had a race
+
+- **Error:** A backend code review (`/code-review high`) found 10 problems. The worst: the server first checked "does this report have a decision?" and then saved in a second step. Two requests at the same moment could both pass the check and both save. Other problems:
+  - An edit was checked against the stored question, not against the changes that other reports on the same question had already made. So two clashing edits could both pass.
+  - Math that was already broken was blamed on every new edit.
+  - The key was checked against the old options and type.
+  - Overlapping edits and a second invalid type were not caught.
+  - "Approve" could carry unchecked edits.
+  - The backend had its own copy of the key rules.
+- **How I found it:** I asked for a thorough review of the backend.
+- **Fix:**
+  - Every write runs in one locked transaction (a Postgres advisory lock, or `BEGIN IMMEDIATE` in SQLite). The decision check happens inside it.
+  - An edit is checked on top of the edits already in effect on that question, and only new problems are reported.
+  - The engine's own checks run on the edited question. The backend only adds a check for text in a typed key that the engine would ignore.
+  - Each request type accepts only what it should carry.
+  - psycopg no longer uses server-side prepared statements, which can break behind a connection pooler.
+- **Check:** 20 parallel approves of one report saved exactly 1. 10 parallel undos saved exactly 1. Each other finding has a test.
+- **Lesson:** "Check, then write" needs a lock. A test with parallel requests shows the race; a normal click test never does.
+
 <!--
 Format for each case:
 
