@@ -203,6 +203,10 @@ List any real defect in this question that no report covers, with the repair and
     **Why:** `main.py` and `db.py` were too long to read and maintain.
     **Result:** The backend now has 4 files, each with one job: `main.py` for the app and the routes, `edit_checks.py` for the checks on a teacher's edit, `database.py` for the connection, and `audit_log.py` for the audit log. The code did not change. The backend tests gave the same output before and after. See part 3, case 10.
 
+13. **Prompt:** "Verify the backend code against our CLAUDE.md. Check everything thoroughly, and take your time."
+    **Why:** The rules in CLAUDE.md are only useful if the code follows them.
+    **Result:** The AI found 1 real bug and 6 small rule problems. All are fixed. See part 3, case 11.
+
 ---
 
 ## 3. Times the AI was wrong
@@ -277,6 +281,13 @@ List any real defect in this question that no report covers, with the repair and
 - **Fix:** It reverted the change. It then suggested a simpler plan with 4 files, and it waited for my approval before it made the change.
 - **Lesson:** A structural decision is mine. The AI must suggest a plan first, then wait for my answer.
 
+### 11. "Save anyway" saved edits that cannot be applied
+
+- **Error:** The AI wrote the edit checks. "Save anyway" skipped all of them. Thus, the server saved edits that can never be applied, for example text that is not in the solution, or two changes in the same place. The first fix of the AI was not complete: the frontend could not show the error.
+- **How I found it:** The AI found the bug when it checked the backend against CLAUDE.md. Then I asked "Is that the best you can suggest?"
+- **Fix:** The server now refuses an edit that cannot be applied, even with "Save anyway". The message tells the teacher what to do. Format warnings still have "Save anyway".
+- **Lesson:** Ask again after the first fix. The second answer looked at the full path, from the server to the screen.
+
 ---
 
 ## 4. My design decisions
@@ -343,7 +354,7 @@ List any real defect in this question that no report covers, with the repair and
 ### 9. The teacher can edit anything
 
 - **Problem:** The guards control the AI. Must they also control the teacher?
-- **Decision:** The teacher can edit any field. A format problem shows a warning with "Save anyway".
+- **Decision:** The teacher can edit any field. A format problem shows a warning with "Save anyway". Only an edit that cannot be applied is refused, and the message tells the teacher how to correct it.
 - **Why:** The teacher is the expert and makes the final decision.
 - **Dropped:** Guards that block the edits of the teacher.
 
